@@ -10,7 +10,7 @@ from __future__ import annotations
 from enum import StrEnum
 from functools import lru_cache
 
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     secret_key: SecretStr = SecretStr("dev-only-not-a-secret")
     api_host: str = "0.0.0.0"  # noqa: S104 — containerised service, bound by compose
     api_port: int = Field(default=8000, ge=1, le=65535)
+    api_url: str = Field(
+        default="http://localhost:8000",
+        validation_alias=AliasChoices("APIX_API_URL", "API_URL"),
+    )
     api_cors_origins: str = "http://localhost:5173"
     api_page_size_default: int = Field(default=100, ge=1, le=1000)
     api_page_size_max: int = Field(default=1000, ge=1, le=10000)

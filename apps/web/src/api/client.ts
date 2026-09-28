@@ -64,7 +64,7 @@ export const BASE_URL: string = STATIC_DEMO
   ? STATIC_API_BASE
   : (window.__APIX_CONFIG__?.apiUrl ??
     (import.meta.env.VITE_APIX_API_URL as string | undefined) ??
-    "http://localhost:8000");
+    (import.meta.env.DEV ? "http://localhost:8000" : ""));
 
 if (STATIC_DEMO) installStaticFetch(BASE_URL);
 
