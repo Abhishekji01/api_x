@@ -46,9 +46,23 @@ export function DailyIndexChart({
         name: "Daily index",
         type: "line",
         data: values,
+        smooth: 0.25,
         showSymbol: false,
         symbolSize: 8,
-        lineStyle: { width: 2, color: tokens.series[0] },
+        lineStyle: { width: 3, color: tokens.series[0] },
+        areaStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: `${tokens.series[0]}33` },
+              { offset: 1, color: `${tokens.series[0]}00` },
+            ],
+          },
+        },
         itemStyle: { color: tokens.series[0], borderColor: tokens.surface, borderWidth: 2 },
         emphasis: { focus: "series" },
         markLine: {

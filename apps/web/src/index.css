@@ -2,59 +2,119 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme tokens — mirrors src/theme/tokens.ts's LIGHT export.
-
-   A light, official-statistics look (the register of a national statistics office's
-   data portal): white panels on a cool grey page, a deep-navy brand bar, one blue
-   accent, and status inks reserved for status. Set explicitly by
-   theme/ThemeContext.tsx — never switched by a media query behind the user's back. */
-:root {
+:root, [data-theme="light"] {
   color-scheme: light;
-  --page: #f3f5f8;
+  --page: #f8fafc;
   --surface: #ffffff;
-  --surface-raised: #f7f8fa;
-  --ink: #0f1728;
-  --ink-secondary: #4a5565;
-  --ink-muted: #6b7280;
-  --grid: #e6e8ec;
-  --axis: #c9cdd4;
-  --border: rgba(15, 23, 40, 0.1);
-  --accent: #1c5cab;
-  --accent-ink: #1c5cab;
-  --status-good-ink: #006300;
-  --status-warning-ink: #8a5300;
-  --status-serious-ink: #b3471b;
-  --status-critical-ink: #b42323;
-  --focus-ring: #1c5cab;
+  --surface-raised: #f1f5f9;
+  --ink: #0f172a;
+  --ink-secondary: #475569;
+  --ink-muted: #64748b;
+  --grid: #e2e8f0;
+  --axis: #cbd5e1;
+  --border: rgba(15, 23, 42, 0.08);
+  --accent: #2563eb;
+  --accent-ink: #1d4ed8;
+  --status-good-ink: #059669;
+  --status-warning-ink: #d97706;
+  --status-serious-ink: #ea580c;
+  --status-critical-ink: #dc2626;
+  --focus-ring: #2563eb;
 
-  --accent-soft: #e9f1fc;
-  --good-soft: #e7f4e7;
-  --warning-soft: #fdf3dd;
-  --serious-soft: #fcebe3;
-  --critical-soft: #fbe9e9;
-  --table-stripe: #f8f9fb;
+  --accent-soft: #eff6ff;
+  --good-soft: #ecfdf5;
+  --warning-soft: #fffbeb;
+  --serious-soft: #fff7ed;
+  --critical-soft: #fef2f2;
+  --table-stripe: #f8fafc;
 
-  /* Brand bar. */
-  --navy: #0d366b;
-  --navy-2: #0a2b57;
+  /* Brand bar */
+  --navy: #0f172a;
+  --navy-2: #1e293b;
   --on-navy: #ffffff;
-  --on-navy-muted: rgba(255, 255, 255, 0.74);
+  --on-navy-muted: rgba(255, 255, 255, 0.75);
   --sidebar-bg: #ffffff;
-  --sidebar-active-bg: #e9f1fc;
-  --sidebar-active-ink: #1c5cab;
-  --shadow-card: 0 1px 2px rgba(15, 23, 40, 0.04), 0 1px 3px rgba(15, 23, 40, 0.04);
-  --shadow-card-hover: 0 2px 4px rgba(15, 23, 40, 0.06), 0 8px 20px -8px rgba(15, 23, 40, 0.12);
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sidebar-active-bg: #eff6ff;
+  --sidebar-active-ink: #2563eb;
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  --shadow-card-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #070a12;
+  --surface: #0f172a;
+  --surface-raised: #1e293b;
+  --ink: #f8fafc;
+  --ink-secondary: #94a3b8;
+  --ink-muted: #64748b;
+  --grid: #1e293b;
+  --axis: #334155;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #38bdf8;
+  --accent-ink: #38bdf8;
+  --status-good-ink: #34d399;
+  --status-warning-ink: #fbbf24;
+  --status-serious-ink: #fb923c;
+  --status-critical-ink: #f87171;
+  --focus-ring: #38bdf8;
+
+  --accent-soft: rgba(56, 189, 248, 0.12);
+  --good-soft: rgba(52, 211, 153, 0.12);
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --serious-soft: rgba(251, 146, 60, 0.12);
+  --critical-soft: rgba(248, 113, 113, 0.12);
+  --table-stripe: #0f172a;
+
+  /* Brand bar */
+  --navy: #020617;
+  --navy-2: #0f172a;
+  --on-navy: #f8fafc;
+  --on-navy-muted: #94a3b8;
+  --sidebar-bg: #0f172a;
+  --sidebar-active-bg: rgba(56, 189, 248, 0.15);
+  --sidebar-active-ink: #38bdf8;
+  --shadow-card: 0 4px 20px 0 rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 12px 30px 0 rgba(0, 0, 0, 0.45);
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 body {
   margin: 0;
   background: var(--page);
   color: var(--ink);
-  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* One visible, consistent focus indicator everywhere. */
+/* Glassmorphism helpers */
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .gradient-text {
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
@@ -72,14 +132,10 @@ body {
   border: 0;
 }
 
-/* Entrance stagger for card grids. Each item sets --reveal-i (its index); the delay
-   is derived so callers never hand-tune timing per screen. Off entirely for users who
-   asked for less motion, and after the first paint so charts/tables don't replay it
-   on every re-render (see the `revealed` one-shot pattern used by StatTile etc). */
 @keyframes reveal-up {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -99,13 +155,13 @@ body {
 }
 
 .card-hover {
-  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-hover:hover {
   box-shadow: var(--shadow-card-hover);
-  transform: translateY(-1px);
-  border-color: rgba(15, 23, 40, 0.16);
+  transform: translateY(-2px);
+  border-color: var(--accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -117,60 +173,29 @@ body {
   }
 }
 
-/* Small tracked label — section eyebrows, table heads, badges. */
 .mono-label {
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   font-weight: 600;
+  font-family: var(--font-mono);
 }
 
-/* Tabular figures wherever numbers must line up. */
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* The scrolling route ticker in the shell header. Duplicated content + a 50%
-   translate is the standard seamless-marquee trick: at the halfway point the two
-   copies are pixel-identical, so the loop point is invisible. Paused on hover so a
-   value can actually be read, and skipped entirely under reduced motion. */
-@keyframes ticker-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.ticker-track {
-  animation: ticker-scroll 45s linear infinite;
-}
-
-.ticker-track:hover {
-  animation-play-state: paused;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ticker-track {
-    animation: none;
-  }
-}
-
-/* A single hardware pulse for the LIVE FEED dot — deliberately not a generic
-   opacity-pulse-everything utility, so it reads as "this one signal is live" rather
-   than as ambient decoration. */
 @keyframes live-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(12, 163, 12, 0.45);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
   }
   70% {
-    box-shadow: 0 0 0 6px rgba(12, 163, 12, 0);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
   }
 }
 
 .live-dot {
-  animation: live-pulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: live-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -178,3 +203,4 @@ body {
     animation: none;
   }
 }
+

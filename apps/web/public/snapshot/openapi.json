@@ -1,0 +1,5741 @@
+{
+  "components": {
+    "schemas": {
+      "AdvanceWindowOut": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "max_days": {
+            "title": "Max Days",
+            "type": "integer"
+          },
+          "min_days": {
+            "title": "Min Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "min_days",
+          "max_days",
+          "label"
+        ],
+        "title": "AdvanceWindowOut",
+        "type": "object"
+      },
+      "BasketMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "advance_windows": {
+            "items": {
+              "$ref": "#/components/schemas/AdvanceWindowOut"
+            },
+            "title": "Advance Windows",
+            "type": "array"
+          },
+          "basket_version": {
+            "title": "Basket Version",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "effective_from": {
+            "format": "date",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "n_routes": {
+            "title": "N Routes",
+            "type": "integer"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/RouteSummary"
+            },
+            "title": "Routes",
+            "type": "array"
+          },
+          "weights_populated": {
+            "description": "False until Phase 2 loads DGCA passenger shares for every route.",
+            "title": "Weights Populated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "basket_version",
+          "effective_from",
+          "description",
+          "n_routes",
+          "weights_populated",
+          "advance_windows",
+          "routes"
+        ],
+        "title": "BasketMetadata",
+        "type": "object"
+      },
+      "Benchmark": {
+        "additionalProperties": false,
+        "description": "A series APIx is checked against, and how well it agrees.",
+        "properties": {
+          "code": {
+            "enum": [
+              "CPI_AIRFARE",
+              "DGCA_AVG_FARE",
+              "UNIT_VALUE"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "frequency": {
+            "enum": [
+              "D",
+              "M"
+            ],
+            "title": "Frequency",
+            "type": "string"
+          },
+          "how_to_load": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The command that loads this benchmark, when it is missing.",
+            "title": "How To Load"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValidationScore"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "LOADED",
+              "NOT_LOADED",
+              "COMPUTED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "source",
+          "frequency",
+          "unit",
+          "status",
+          "points",
+          "score",
+          "note"
+        ],
+        "title": "Benchmark",
+        "type": "object"
+      },
+      "CarrierOut": {
+        "additionalProperties": false,
+        "description": "One scheduled domestic carrier, as classified by APIx.",
+        "properties": {
+          "carrier_type": {
+            "enum": [
+              "FSC",
+              "LCC",
+              "REGIONAL"
+            ],
+            "title": "Carrier Type",
+            "type": "string"
+          },
+          "iata": {
+            "maxLength": 2,
+            "minLength": 2,
+            "title": "Iata",
+            "type": "string"
+          },
+          "icao": {
+            "title": "Icao",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "iata",
+          "icao",
+          "name",
+          "carrier_type"
+        ],
+        "title": "CarrierOut",
+        "type": "object"
+      },
+      "CarriersMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "carriers": {
+            "items": {
+              "$ref": "#/components/schemas/CarrierOut"
+            },
+            "title": "Carriers",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "carriers",
+          "meta"
+        ],
+        "title": "CarriersMetadata",
+        "type": "object"
+      },
+      "CoverageResponse": {
+        "additionalProperties": false,
+        "description": "What was actually collected on a date, including what was not.\n\nAn empty result is data. ``routes_missing`` is a list, not an omission.",
+        "properties": {
+          "coverage_pct": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Coverage Pct",
+            "type": "number"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "routes_covered": {
+            "title": "Routes Covered",
+            "type": "integer"
+          },
+          "routes_expected": {
+            "title": "Routes Expected",
+            "type": "integer"
+          },
+          "routes_missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Routes Missing",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceCoverage"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "routes_expected",
+          "routes_covered",
+          "coverage_pct",
+          "routes_missing",
+          "sources",
+          "meta"
+        ],
+        "title": "CoverageResponse",
+        "type": "object"
+      },
+      "DecompositionComponent": {
+        "additionalProperties": false,
+        "description": "One additive contribution to the period-on-period index movement.",
+        "properties": {
+          "component": {
+            "description": "base_fare | taxes | udf | convenience_fee | mix_route | mix_carrier | mix_advance_window | quality_adjustment | residual",
+            "title": "Component",
+            "type": "string"
+          },
+          "contribution_pct_points": {
+            "description": "Percentage-point contribution to the total movement.",
+            "title": "Contribution Pct Points",
+            "type": "number"
+          },
+          "share_of_movement": {
+            "description": "Signed share of the total movement.",
+            "title": "Share Of Movement",
+            "type": "number"
+          }
+        },
+        "required": [
+          "component",
+          "contribution_pct_points",
+          "share_of_movement"
+        ],
+        "title": "DecompositionComponent",
+        "type": "object"
+      },
+      "DecompositionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/DecompositionComponent"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "period": {
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "residual_pct_points": {
+            "description": "Unexplained remainder. Reported, never distributed across components.",
+            "title": "Residual Pct Points",
+            "type": "number"
+          },
+          "series": {
+            "title": "Series",
+            "type": "string"
+          },
+          "total_movement_pct": {
+            "title": "Total Movement Pct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "period",
+          "series",
+          "total_movement_pct",
+          "components",
+          "residual_pct_points",
+          "meta"
+        ],
+        "title": "DecompositionResponse",
+        "type": "object"
+      },
+      "DependencyStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "ok"
+        ],
+        "title": "DependencyStatus",
+        "type": "object"
+      },
+      "ElementaryFormula": {
+        "description": "Formula for the lowest-level aggregate, below the level of weights.",
+        "enum": [
+          "jevons",
+          "dutot",
+          "carli"
+        ],
+        "title": "ElementaryFormula",
+        "type": "string"
+      },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "description": "Liveness. Answers only whether this process is running.",
+        "properties": {
+          "service": {
+            "default": "apix-api",
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "HeatmapCell": {
+        "additionalProperties": false,
+        "properties": {
+          "n_quotes": {
+            "minimum": 0.0,
+            "title": "N Quotes",
+            "type": "integer"
+          },
+          "period": {
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "route_code": {
+            "title": "Route Code",
+            "type": "string"
+          },
+          "value": {
+            "description": "Index value for this route and period.",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "route_code",
+          "period",
+          "value",
+          "n_quotes"
+        ],
+        "title": "HeatmapCell",
+        "type": "object"
+      },
+      "ImputationRule": {
+        "description": "What to do about a missing elementary cell.",
+        "enum": [
+          "none",
+          "carry_forward",
+          "class_mean",
+          "targeted_mean"
+        ],
+        "title": "ImputationRule",
+        "type": "string"
+      },
+      "IndexPoint": {
+        "additionalProperties": false,
+        "description": "One published index observation.\n\n``n_quotes`` and ``coverage_pct`` are mandatory companions of ``value``: a published\nnumber travels with the evidence base behind it.",
+        "properties": {
+          "coverage_pct": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Share of basket routes with data.",
+            "title": "Coverage Pct"
+          },
+          "is_imputed": {
+            "default": false,
+            "description": "True if any input cell was imputed.",
+            "title": "Is Imputed",
+            "type": "boolean"
+          },
+          "n_quotes": {
+            "description": "Cleaned quotes underlying this value.",
+            "minimum": 0.0,
+            "title": "N Quotes",
+            "type": "integer"
+          },
+          "period": {
+            "description": "First day of the period the value refers to.",
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "series": {
+            "description": "Series code, e.g. APIX.ALL.M.",
+            "title": "Series",
+            "type": "string"
+          },
+          "status": {
+            "default": "EXAMPLE_ONLY",
+            "enum": [
+              "PROVISIONAL",
+              "PUBLISHED",
+              "REVISED",
+              "SUPPRESSED",
+              "EXAMPLE_ONLY"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "value": {
+            "description": "Index value; reference period = 100.",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "series",
+          "period",
+          "value",
+          "n_quotes"
+        ],
+        "title": "IndexPoint",
+        "type": "object"
+      },
+      "LeadTimeBucket": {
+        "additionalProperties": false,
+        "description": "Mean fare by how far ahead the ticket is priced \u2014 the lead-time curve.",
+        "properties": {
+          "index_vs_cheapest": {
+            "description": "Mean fare relative to the cheapest window in the same route, = 100.",
+            "title": "Index Vs Cheapest",
+            "type": "number"
+          },
+          "max_days": {
+            "title": "Max Days",
+            "type": "integer"
+          },
+          "mean_fare": {
+            "title": "Mean Fare",
+            "type": "number"
+          },
+          "median_fare": {
+            "title": "Median Fare",
+            "type": "number"
+          },
+          "min_days": {
+            "title": "Min Days",
+            "type": "integer"
+          },
+          "n_quotes": {
+            "minimum": 0.0,
+            "title": "N Quotes",
+            "type": "integer"
+          },
+          "p25_fare": {
+            "description": "Lower quartile \u2014 the dispersion band the chart draws.",
+            "title": "P25 Fare",
+            "type": "number"
+          },
+          "p75_fare": {
+            "description": "Upper quartile \u2014 the dispersion band the chart draws.",
+            "title": "P75 Fare",
+            "type": "number"
+          },
+          "window_code": {
+            "description": "Advance-purchase window from config/basket.yaml.",
+            "title": "Window Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "window_code",
+          "min_days",
+          "max_days",
+          "mean_fare",
+          "median_fare",
+          "p25_fare",
+          "p75_fare",
+          "n_quotes",
+          "index_vs_cheapest"
+        ],
+        "title": "LeadTimeBucket",
+        "type": "object"
+      },
+      "LeadTimeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "buckets": {
+            "items": {
+              "$ref": "#/components/schemas/LeadTimeBucket"
+            },
+            "title": "Buckets",
+            "type": "array"
+          },
+          "carrier_iata": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Carrier the curve is restricted to. Null = all carriers.",
+            "title": "Carrier Iata"
+          },
+          "currency": {
+            "default": "INR",
+            "title": "Currency",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "route_code": {
+            "title": "Route Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "route_code",
+          "buckets",
+          "meta"
+        ],
+        "title": "LeadTimeResponse",
+        "type": "object"
+      },
+      "MethodMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "config_hash": {
+            "description": "SHA-256 of the canonical method config.",
+            "title": "Config Hash",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "elementary_formula": {
+            "title": "Elementary Formula",
+            "type": "string"
+          },
+          "imputation_rule": {
+            "title": "Imputation Rule",
+            "type": "string"
+          },
+          "index_reference_value": {
+            "title": "Index Reference Value",
+            "type": "number"
+          },
+          "method_version": {
+            "title": "Method Version",
+            "type": "string"
+          },
+          "min_coverage_pct": {
+            "title": "Min Coverage Pct",
+            "type": "number"
+          },
+          "min_quotes_per_cell": {
+            "title": "Min Quotes Per Cell",
+            "type": "integer"
+          },
+          "multilateral_method": {
+            "title": "Multilateral Method",
+            "type": "string"
+          },
+          "outlier_rules": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Outlier Rules",
+            "type": "array"
+          },
+          "price_reference_period": {
+            "title": "Price Reference Period",
+            "type": "string"
+          },
+          "quality_adjustment_columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Quality Adjustment Columns",
+            "type": "array"
+          },
+          "quality_adjustment_enabled": {
+            "title": "Quality Adjustment Enabled",
+            "type": "boolean"
+          },
+          "splice_method": {
+            "title": "Splice Method",
+            "type": "string"
+          },
+          "window_frequency": {
+            "title": "Window Frequency",
+            "type": "string"
+          },
+          "window_length_periods": {
+            "title": "Window Length Periods",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "method_version",
+          "config_hash",
+          "description",
+          "price_reference_period",
+          "index_reference_value",
+          "elementary_formula",
+          "multilateral_method",
+          "window_length_periods",
+          "window_frequency",
+          "splice_method",
+          "quality_adjustment_enabled",
+          "quality_adjustment_columns",
+          "imputation_rule",
+          "outlier_rules",
+          "min_quotes_per_cell",
+          "min_coverage_pct"
+        ],
+        "title": "MethodMetadata",
+        "type": "object"
+      },
+      "MethodOverrides": {
+        "additionalProperties": false,
+        "description": "Request body for a preview run: the method in force, with these fields changed.\n\nEvery field is optional; an omitted field keeps the value from ``config/method.yaml``.\nThe merged configuration is re-validated by the same schema that validates the file,\nso a preview cannot request a method the system would refuse to publish (e.g. a Carli\nelementary aggregate).",
+        "properties": {
+          "elementary_formula": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ElementaryFormula"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "imputation_rule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImputationRule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "multilateral_method": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MultilateralMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quality_adjustment_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Adjustment Enabled"
+          },
+          "splice_method": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpliceMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "window_length_periods": {
+            "anyOf": [
+              {
+                "maximum": 48.0,
+                "minimum": 2.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Length Periods"
+          }
+        },
+        "title": "MethodOverrides",
+        "type": "object"
+      },
+      "MethodPreviewDiagnostics": {
+        "additionalProperties": false,
+        "description": "Aggregate quality indicators for a preview run, shown beside the chart.",
+        "properties": {
+          "coverage_pct": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Coverage Pct",
+            "type": "number"
+          },
+          "imputed_cell_count": {
+            "minimum": 0.0,
+            "title": "Imputed Cell Count",
+            "type": "integer"
+          },
+          "n_quotes": {
+            "minimum": 0.0,
+            "title": "N Quotes",
+            "type": "integer"
+          },
+          "outlier_dropped_count": {
+            "minimum": 0.0,
+            "title": "Outlier Dropped Count",
+            "type": "integer"
+          },
+          "suppressed_cell_count": {
+            "description": "Cells below publication thresholds \u2014 suppressed, not dropped.",
+            "minimum": 0.0,
+            "title": "Suppressed Cell Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "coverage_pct",
+          "n_quotes",
+          "imputed_cell_count",
+          "outlier_dropped_count",
+          "suppressed_cell_count"
+        ],
+        "title": "MethodPreviewDiagnostics",
+        "type": "object"
+      },
+      "MethodPreviewPoint": {
+        "additionalProperties": false,
+        "description": "One period of a preview run, next to the value the method in force produces.",
+        "properties": {
+          "baseline_value": {
+            "description": "Same period under the method in force.",
+            "title": "Baseline Value",
+            "type": "number"
+          },
+          "coverage_pct": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Pct"
+          },
+          "imputed_cells": {
+            "minimum": 0.0,
+            "title": "Imputed Cells",
+            "type": "integer"
+          },
+          "n_quotes": {
+            "minimum": 0.0,
+            "title": "N Quotes",
+            "type": "integer"
+          },
+          "outlier_cells": {
+            "description": "Observations dropped by outlier screens.",
+            "minimum": 0.0,
+            "title": "Outlier Cells",
+            "type": "integer"
+          },
+          "period": {
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "period",
+          "value",
+          "baseline_value",
+          "n_quotes",
+          "imputed_cells",
+          "outlier_cells"
+        ],
+        "title": "MethodPreviewPoint",
+        "type": "object"
+      },
+      "MethodPreviewResponse": {
+        "additionalProperties": false,
+        "description": "A preview index run. Never a published statistic, and labelled so.\n\n``config_hash`` is the hash the previewed configuration *would* be stamped with,\nso a preview a statistician decides to adopt is traceable to the exact config that\nproduced it.",
+        "properties": {
+          "baseline_config_hash": {
+            "description": "SHA-256 of the method in force.",
+            "title": "Baseline Config Hash",
+            "type": "string"
+          },
+          "config_hash": {
+            "description": "SHA-256 of the previewed method configuration.",
+            "title": "Config Hash",
+            "type": "string"
+          },
+          "diagnostics": {
+            "$ref": "#/components/schemas/MethodPreviewDiagnostics"
+          },
+          "is_baseline": {
+            "description": "True when the resolved settings equal the method in force.",
+            "title": "Is Baseline",
+            "type": "boolean"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/MethodPreviewPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "preview_run_id": {
+            "title": "Preview Run Id",
+            "type": "string"
+          },
+          "series": {
+            "title": "Series",
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/MethodPreviewSettings"
+          }
+        },
+        "required": [
+          "series",
+          "preview_run_id",
+          "is_baseline",
+          "settings",
+          "config_hash",
+          "baseline_config_hash",
+          "points",
+          "diagnostics",
+          "meta"
+        ],
+        "title": "MethodPreviewResponse",
+        "type": "object"
+      },
+      "MethodPreviewSettings": {
+        "additionalProperties": false,
+        "description": "The fully-resolved method configuration a preview was computed under.",
+        "properties": {
+          "elementary_formula": {
+            "$ref": "#/components/schemas/ElementaryFormula"
+          },
+          "imputation_rule": {
+            "$ref": "#/components/schemas/ImputationRule"
+          },
+          "multilateral_method": {
+            "$ref": "#/components/schemas/MultilateralMethod"
+          },
+          "quality_adjustment_enabled": {
+            "title": "Quality Adjustment Enabled",
+            "type": "boolean"
+          },
+          "splice_method": {
+            "$ref": "#/components/schemas/SpliceMethod"
+          },
+          "window_length_periods": {
+            "title": "Window Length Periods",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "elementary_formula",
+          "multilateral_method",
+          "window_length_periods",
+          "splice_method",
+          "quality_adjustment_enabled",
+          "imputation_rule"
+        ],
+        "title": "MethodPreviewSettings",
+        "type": "object"
+      },
+      "MultilateralMethod": {
+        "description": "Multilateral method used across the rolling window.",
+        "enum": [
+          "geks_tornqvist",
+          "geks_fisher",
+          "time_product_dummy",
+          "geary_khamis"
+        ],
+        "title": "MultilateralMethod",
+        "type": "string"
+      },
+      "NowcastPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "caveat": {
+            "default": "A nowcast is a model estimate of a period that has not closed. It is not a published index value and must not be cited as one.",
+            "title": "Caveat",
+            "type": "string"
+          },
+          "ci_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ci High"
+          },
+          "ci_level": {
+            "default": 0.8,
+            "description": "Credible interval level.",
+            "exclusiveMaximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Ci Level",
+            "type": "number"
+          },
+          "ci_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ci Low"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "point_estimate": {
+            "title": "Point Estimate",
+            "type": "number"
+          },
+          "produced_at": {
+            "title": "Produced At",
+            "type": "string"
+          },
+          "target_period": {
+            "format": "date",
+            "title": "Target Period",
+            "type": "string"
+          },
+          "target_series": {
+            "title": "Target Series",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_series",
+          "target_period",
+          "point_estimate",
+          "model_version",
+          "produced_at"
+        ],
+        "title": "NowcastPoint",
+        "type": "object"
+      },
+      "PageInfo": {
+        "additionalProperties": false,
+        "description": "Paging state returned with every list response.",
+        "properties": {
+          "has_more": {
+            "description": "Whether a further page exists.",
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Maximum items requested for this page.",
+            "title": "Limit",
+            "type": "integer"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Opaque token. Pass it unchanged as the `cursor` query parameter to fetch the next page. Null when `has_more` is false. Cursors are bound to the filter parameters of the request that produced them.",
+            "title": "Next Cursor"
+          },
+          "returned": {
+            "description": "Items actually returned.",
+            "title": "Returned",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "limit",
+          "returned",
+          "has_more"
+        ],
+        "title": "PageInfo",
+        "type": "object"
+      },
+      "Page_HeatmapCell_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HeatmapCell"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        },
+        "required": [
+          "items",
+          "pagination",
+          "meta"
+        ],
+        "title": "Page[HeatmapCell]",
+        "type": "object"
+      },
+      "Page_IndexPoint_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/IndexPoint"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        },
+        "required": [
+          "items",
+          "pagination",
+          "meta"
+        ],
+        "title": "Page[IndexPoint]",
+        "type": "object"
+      },
+      "Page_NowcastPoint_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NowcastPoint"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        },
+        "required": [
+          "items",
+          "pagination",
+          "meta"
+        ],
+        "title": "Page[NowcastPoint]",
+        "type": "object"
+      },
+      "Page_QuoteSummary_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        },
+        "required": [
+          "items",
+          "pagination",
+          "meta"
+        ],
+        "title": "Page[QuoteSummary]",
+        "type": "object"
+      },
+      "Page_RevisionEntry_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RevisionEntry"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        },
+        "required": [
+          "items",
+          "pagination",
+          "meta"
+        ],
+        "title": "Page[RevisionEntry]",
+        "type": "object"
+      },
+      "Page_RouteContribution_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RouteContribution"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        },
+        "required": [
+          "items",
+          "pagination",
+          "meta"
+        ],
+        "title": "Page[RouteContribution]",
+        "type": "object"
+      },
+      "Page_RouteSeriesPoint_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RouteSeriesPoint"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        },
+        "required": [
+          "items",
+          "pagination",
+          "meta"
+        ],
+        "title": "Page[RouteSeriesPoint]",
+        "type": "object"
+      },
+      "Page_RouteSummary_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RouteSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        },
+        "required": [
+          "items",
+          "pagination",
+          "meta"
+        ],
+        "title": "Page[RouteSummary]",
+        "type": "object"
+      },
+      "PipelineResponse": {
+        "additionalProperties": false,
+        "description": "Collection and cleaning, end to end, with the compliance position of every source.",
+        "properties": {
+          "advance_windows": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Advance Windows",
+            "type": "array"
+          },
+          "data_origin": {
+            "enum": [
+              "COLLECTED",
+              "SYNTHETIC",
+              "MIXED",
+              "NONE"
+            ],
+            "title": "Data Origin",
+            "type": "string"
+          },
+          "days_collected": {
+            "minimum": 0.0,
+            "title": "Days Collected",
+            "type": "integer"
+          },
+          "first_query_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Query Date"
+          },
+          "last_query_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Query Date"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "policy_decisions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Policy Decisions",
+            "type": "object"
+          },
+          "routes_in_basket": {
+            "title": "Routes In Basket",
+            "type": "integer"
+          },
+          "safeguards": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Safeguards",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineStage"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "sweep_times_local": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sweep Times Local",
+            "type": "array"
+          }
+        },
+        "required": [
+          "data_origin",
+          "first_query_date",
+          "last_query_date",
+          "days_collected",
+          "routes_in_basket",
+          "advance_windows",
+          "sweep_times_local",
+          "stages",
+          "sources",
+          "policy_decisions",
+          "safeguards",
+          "meta"
+        ],
+        "title": "PipelineResponse",
+        "type": "object"
+      },
+      "PipelineSource": {
+        "additionalProperties": false,
+        "properties": {
+          "blocked_total": {
+            "minimum": 0.0,
+            "title": "Blocked Total",
+            "type": "integer"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "crawl_delay_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crawl Delay S"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "last_run_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run Status"
+          },
+          "legal_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legal Basis"
+          },
+          "max_requests_per_hour": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Requests Per Hour"
+          },
+          "quotes_total": {
+            "minimum": 0.0,
+            "title": "Quotes Total",
+            "type": "integer"
+          },
+          "robots_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Robots Url"
+          },
+          "source_type": {
+            "title": "Source Type",
+            "type": "string"
+          },
+          "tos_reviewed_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tos Reviewed At"
+          },
+          "tos_verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tos Verdict"
+          }
+        },
+        "required": [
+          "code",
+          "display_name",
+          "domain",
+          "source_type",
+          "enabled",
+          "tos_verdict",
+          "tos_reviewed_at",
+          "legal_basis",
+          "robots_url",
+          "crawl_delay_s",
+          "max_requests_per_hour",
+          "last_run_at",
+          "last_run_status",
+          "quotes_total",
+          "blocked_total"
+        ],
+        "title": "PipelineSource",
+        "type": "object"
+      },
+      "PipelineStage": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "minimum": 0.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "key": {
+            "enum": [
+              "collected",
+              "window",
+              "clean",
+              "outliers",
+              "imputed",
+              "indexed"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "count",
+          "note"
+        ],
+        "title": "PipelineStage",
+        "type": "object"
+      },
+      "Problem": {
+        "additionalProperties": true,
+        "description": "An RFC 9457 problem detail object.",
+        "example": {
+          "detail": "No series is published with code 'APIX.ALL.M'.",
+          "instance": "/v1/index",
+          "status": 404,
+          "title": "Series not found",
+          "trace_id": "01JB8Q0000000000000000",
+          "type": "https://apix.example.org/problems/series-not-found"
+        },
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Explanation specific to this occurrence.",
+            "title": "Detail"
+          },
+          "instance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "URI of the specific occurrence.",
+            "title": "Instance"
+          },
+          "status": {
+            "description": "HTTP status code.",
+            "maximum": 599.0,
+            "minimum": 400.0,
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "description": "Short, human-readable summary. Does not change per occurrence.",
+            "title": "Title",
+            "type": "string"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Correlates this response with the server's structured logs.",
+            "title": "Trace Id"
+          },
+          "type": {
+            "description": "Stable URI identifying the problem type.",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status"
+        ],
+        "title": "Problem",
+        "type": "object"
+      },
+      "ProvenanceResponse": {
+        "additionalProperties": false,
+        "description": "The full chain: quote -> source and legal basis -> cleaning -> index values.\n\nThis endpoint is the operational form of principle 1. If it cannot answer, the\nnumber should not have been published.",
+        "properties": {
+          "advance_days": {
+            "title": "Advance Days",
+            "type": "integer"
+          },
+          "carrier_iata": {
+            "title": "Carrier Iata",
+            "type": "string"
+          },
+          "collected_at": {
+            "title": "Collected At",
+            "type": "string"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "contributed_to": {
+            "description": "Series codes and periods this quote contributed to.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Contributed To",
+            "type": "array"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "query_date": {
+            "format": "date",
+            "title": "Query Date",
+            "type": "string"
+          },
+          "quote_id": {
+            "title": "Quote Id",
+            "type": "string"
+          },
+          "raw_payload_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Payload Ref"
+          },
+          "route_code": {
+            "title": "Route Code",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ProvenanceSource"
+          },
+          "source_url_hash": {
+            "title": "Source Url Hash",
+            "type": "string"
+          },
+          "total_fare": {
+            "title": "Total Fare",
+            "type": "number"
+          },
+          "travel_date": {
+            "format": "date",
+            "title": "Travel Date",
+            "type": "string"
+          },
+          "treatment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProvenanceTreatment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "quote_id",
+          "collected_at",
+          "run_id",
+          "route_code",
+          "carrier_iata",
+          "travel_date",
+          "query_date",
+          "advance_days",
+          "total_fare",
+          "currency",
+          "source_url_hash",
+          "content_hash",
+          "raw_payload_ref",
+          "source",
+          "treatment",
+          "contributed_to",
+          "meta"
+        ],
+        "title": "ProvenanceResponse",
+        "type": "object"
+      },
+      "ProvenanceSource": {
+        "additionalProperties": false,
+        "properties": {
+          "collection_method": {
+            "title": "Collection Method",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "legal_basis": {
+            "title": "Legal Basis",
+            "type": "string"
+          },
+          "policy_decision": {
+            "description": "The PolicyEngine outcome that permitted the fetch.",
+            "title": "Policy Decision",
+            "type": "string"
+          },
+          "robots_fetched_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Robots Fetched At"
+          },
+          "source_code": {
+            "title": "Source Code",
+            "type": "string"
+          },
+          "source_type": {
+            "title": "Source Type",
+            "type": "string"
+          },
+          "tos_reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tos Reviewed At"
+          },
+          "tos_verdict": {
+            "title": "Tos Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_code",
+          "display_name",
+          "domain",
+          "source_type",
+          "collection_method",
+          "legal_basis",
+          "policy_decision",
+          "tos_verdict"
+        ],
+        "title": "ProvenanceSource",
+        "type": "object"
+      },
+      "ProvenanceTreatment": {
+        "additionalProperties": false,
+        "properties": {
+          "clean_id": {
+            "title": "Clean Id",
+            "type": "string"
+          },
+          "imputation_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imputation Method"
+          },
+          "is_imputed": {
+            "title": "Is Imputed",
+            "type": "boolean"
+          },
+          "is_outlier": {
+            "title": "Is Outlier",
+            "type": "boolean"
+          },
+          "outlier_rule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outlier Rule"
+          },
+          "quality_vector": {
+            "additionalProperties": true,
+            "title": "Quality Vector",
+            "type": "object"
+          }
+        },
+        "required": [
+          "clean_id",
+          "is_outlier",
+          "outlier_rule",
+          "is_imputed",
+          "imputation_method",
+          "quality_vector"
+        ],
+        "title": "ProvenanceTreatment",
+        "type": "object"
+      },
+      "QuoteSummary": {
+        "additionalProperties": false,
+        "description": "One cleaned observation behind a route index value \u2014 audit drill-down, level 3.\n\nEach row resolves further through ``/v1/provenance/{quote_id}``.",
+        "properties": {
+          "advance_days": {
+            "minimum": 0.0,
+            "title": "Advance Days",
+            "type": "integer"
+          },
+          "carrier_iata": {
+            "title": "Carrier Iata",
+            "type": "string"
+          },
+          "clean_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "fare_quote_clean.id. Null when the quote was screened out.",
+            "title": "Clean Id"
+          },
+          "currency": {
+            "default": "INR",
+            "title": "Currency",
+            "type": "string"
+          },
+          "imputation_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imputation Method"
+          },
+          "is_imputed": {
+            "title": "Is Imputed",
+            "type": "boolean"
+          },
+          "is_outlier": {
+            "title": "Is Outlier",
+            "type": "boolean"
+          },
+          "outlier_rule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outlier Rule"
+          },
+          "query_date": {
+            "format": "date",
+            "title": "Query Date",
+            "type": "string"
+          },
+          "quote_id": {
+            "description": "fare_quote.id \u2014 the key into /v1/provenance.",
+            "title": "Quote Id",
+            "type": "string"
+          },
+          "route_code": {
+            "title": "Route Code",
+            "type": "string"
+          },
+          "source_code": {
+            "title": "Source Code",
+            "type": "string"
+          },
+          "total_fare": {
+            "title": "Total Fare",
+            "type": "number"
+          },
+          "travel_date": {
+            "format": "date",
+            "title": "Travel Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "quote_id",
+          "route_code",
+          "carrier_iata",
+          "travel_date",
+          "query_date",
+          "advance_days",
+          "total_fare",
+          "source_code",
+          "is_outlier",
+          "is_imputed"
+        ],
+        "title": "QuoteSummary",
+        "type": "object"
+      },
+      "ReadyResponse": {
+        "additionalProperties": false,
+        "description": "Readiness. Answers \"can this process serve traffic\", dependency by dependency.",
+        "properties": {
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/DependencyStatus"
+            },
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "degraded",
+              "not_ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "dependencies"
+        ],
+        "title": "ReadyResponse",
+        "type": "object"
+      },
+      "ResponseMeta": {
+        "additionalProperties": false,
+        "description": "Metadata attached to every APIx response.\n\n``data_status`` is not decoration: ``PUBLISHED`` means a released index_run,\n``PROVISIONAL`` a draft one visible only to a researcher/official caller, and\n``PREVIEW`` a what-if method run that is never a published statistic \u2014 so nothing\ndownstream can mistake one for another.",
+        "properties": {
+          "basket_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Version of config/basket.yaml behind these numbers.",
+            "title": "Basket Version"
+          },
+          "data_status": {
+            "default": "EXAMPLE_ONLY",
+            "description": "EXAMPLE_ONLY | PROVISIONAL | PUBLISHED | REVISED. EXAMPLE_ONLY means the payload is a contract placeholder and carries no statistical meaning.",
+            "title": "Data Status",
+            "type": "string"
+          },
+          "generated_at": {
+            "description": "RFC 3339 timestamp at which this response was built.",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "index_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The index_run that produced these values.",
+            "title": "Index Run Id"
+          },
+          "method_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Version of config/method.yaml behind these numbers.",
+            "title": "Method Version"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The data_snapshot the index_run consumed.",
+            "title": "Snapshot Id"
+          }
+        },
+        "required": [
+          "generated_at"
+        ],
+        "title": "ResponseMeta",
+        "type": "object"
+      },
+      "RevisionEntry": {
+        "additionalProperties": false,
+        "description": "One row of the revision log. Revisions are visible, never silent.",
+        "properties": {
+          "index_run_id": {
+            "title": "Index Run Id",
+            "type": "string"
+          },
+          "new_value": {
+            "title": "New Value",
+            "type": "number"
+          },
+          "old_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when the entry is a first publication, not a revision.",
+            "title": "Old Value"
+          },
+          "period": {
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "revised_at": {
+            "description": "RFC 3339 timestamp of the revision.",
+            "title": "Revised At",
+            "type": "string"
+          },
+          "series": {
+            "title": "Series",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revised_at",
+          "series",
+          "period",
+          "new_value",
+          "reason",
+          "index_run_id"
+        ],
+        "title": "RevisionEntry",
+        "type": "object"
+      },
+      "RouteContribution": {
+        "additionalProperties": false,
+        "description": "One route's part in a headline index value \u2014 audit drill-down, level 2.\n\n``weight`` and ``contribution_pct_points`` are null until Phase 2 attaches DGCA\npassenger shares; an unweighted contribution is reported as absent, never estimated.",
+        "properties": {
+          "contribution_pct_points": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contribution Pct Points"
+          },
+          "index_value": {
+            "title": "Index Value",
+            "type": "number"
+          },
+          "n_quotes": {
+            "minimum": 0.0,
+            "title": "N Quotes",
+            "type": "integer"
+          },
+          "period": {
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "route_code": {
+            "title": "Route Code",
+            "type": "string"
+          },
+          "series": {
+            "description": "The route-level series code, e.g. APIX.ROUTE.DEL-BOM.M.",
+            "title": "Series",
+            "type": "string"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
+          }
+        },
+        "required": [
+          "route_code",
+          "series",
+          "period",
+          "index_value",
+          "n_quotes"
+        ],
+        "title": "RouteContribution",
+        "type": "object"
+      },
+      "RouteSeriesPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "advance_days": {
+            "maximum": 365.0,
+            "minimum": 0.0,
+            "title": "Advance Days",
+            "type": "integer"
+          },
+          "carrier_iata": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Carrier the point is restricted to. Null = all carriers.",
+            "title": "Carrier Iata"
+          },
+          "currency": {
+            "default": "INR",
+            "title": "Currency",
+            "type": "string"
+          },
+          "mean_fare": {
+            "title": "Mean Fare",
+            "type": "number"
+          },
+          "median_fare": {
+            "title": "Median Fare",
+            "type": "number"
+          },
+          "n_quotes": {
+            "minimum": 0.0,
+            "title": "N Quotes",
+            "type": "integer"
+          },
+          "p25_fare": {
+            "title": "P25 Fare",
+            "type": "number"
+          },
+          "p75_fare": {
+            "title": "P75 Fare",
+            "type": "number"
+          },
+          "period": {
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "sold_out": {
+            "default": false,
+            "description": "True when every observed itinerary in the cell was sold out. The fare fields then describe the last quotes seen before sell-out, not a bookable price, and the dashboard must shade the period rather than plot it as one.",
+            "title": "Sold Out",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "period",
+          "advance_days",
+          "mean_fare",
+          "median_fare",
+          "p25_fare",
+          "p75_fare",
+          "n_quotes"
+        ],
+        "title": "RouteSeriesPoint",
+        "type": "object"
+      },
+      "RouteSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "active_from": {
+            "format": "date",
+            "title": "Active From",
+            "type": "string"
+          },
+          "active_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active To"
+          },
+          "basket_version": {
+            "title": "Basket Version",
+            "type": "string"
+          },
+          "code": {
+            "description": "Directional route code, e.g. DEL-BOM.",
+            "title": "Code",
+            "type": "string"
+          },
+          "dest_city": {
+            "title": "Dest City",
+            "type": "string"
+          },
+          "dest_iata": {
+            "title": "Dest Iata",
+            "type": "string"
+          },
+          "dest_lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dest Lat"
+          },
+          "dest_lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dest Lon"
+          },
+          "dgca_pax_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Route's share of DGCA-reported domestic passengers. Null until Phase 2 loads the real DGCA release; never estimated.",
+            "title": "Dgca Pax Share"
+          },
+          "origin_city": {
+            "title": "Origin City",
+            "type": "string"
+          },
+          "origin_iata": {
+            "title": "Origin Iata",
+            "type": "string"
+          },
+          "origin_lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Origin airport latitude (db/seeds/airports.csv). Null when not yet joined.",
+            "title": "Origin Lat"
+          },
+          "origin_lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin Lon"
+          }
+        },
+        "required": [
+          "code",
+          "origin_iata",
+          "origin_city",
+          "dest_iata",
+          "dest_city",
+          "basket_version",
+          "active_from"
+        ],
+        "title": "RouteSummary",
+        "type": "object"
+      },
+      "SdmxMessage": {
+        "additionalProperties": true,
+        "description": "SDMX-JSON 2.0.0 data message.\n\nModelled loosely on purpose: the SDMX information model is deep, and pinning it into\nPydantic here would freeze parts of it we do not yet emit. The envelope keys are\nfixed; their contents follow the SDMX-JSON 2.0.0 specification.",
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "title": "Meta",
+            "type": "object"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "SdmxMessage",
+        "type": "object"
+      },
+      "SeriesPoint": {
+        "additionalProperties": false,
+        "description": "One period of a comparison series, on its own unit and as an index.",
+        "properties": {
+          "index_value": {
+            "description": "The same series rebased to 100 at the first period of the comparison.",
+            "title": "Index Value",
+            "type": "number"
+          },
+          "period": {
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "value": {
+            "description": "The series in its own unit (index points, or INR).",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "period",
+          "value",
+          "index_value"
+        ],
+        "title": "SeriesPoint",
+        "type": "object"
+      },
+      "SourceCoverage": {
+        "additionalProperties": false,
+        "properties": {
+          "blocked_count": {
+            "minimum": 0.0,
+            "title": "Blocked Count",
+            "type": "integer"
+          },
+          "quotes_collected": {
+            "minimum": 0.0,
+            "title": "Quotes Collected",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why a source is not OK. Never null when status is not OK.",
+            "title": "Reason"
+          },
+          "source_code": {
+            "title": "Source Code",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "OK",
+              "PARTIAL",
+              "BLOCKED",
+              "DISABLED",
+              "ERROR"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_code",
+          "status",
+          "quotes_collected",
+          "blocked_count"
+        ],
+        "title": "SourceCoverage",
+        "type": "object"
+      },
+      "SpliceMethod": {
+        "description": "How consecutive windows are joined into a continuous series.\n\nWhichever method is configured, splicing only ever appends the newest period: a\npublished value is never revised by rolling the window forward (CLAUDE.md\nprinciple 4). See :mod:`apix_core.index.splice` for the formulas.",
+        "enum": [
+          "movement",
+          "window",
+          "half",
+          "mean",
+          "fbew",
+          "fbmw"
+        ],
+        "title": "SpliceMethod",
+        "type": "string"
+      },
+      "ValidationProblem": {
+        "additionalProperties": true,
+        "description": "A 422 problem, carrying the individual field errors.",
+        "example": {
+          "detail": "No series is published with code 'APIX.ALL.M'.",
+          "instance": "/v1/index",
+          "status": 404,
+          "title": "Series not found",
+          "trace_id": "01JB8Q0000000000000000",
+          "type": "https://apix.example.org/problems/series-not-found"
+        },
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Explanation specific to this occurrence.",
+            "title": "Detail"
+          },
+          "errors": {
+            "description": "One entry per rejected field.",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "instance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "URI of the specific occurrence.",
+            "title": "Instance"
+          },
+          "status": {
+            "description": "HTTP status code.",
+            "maximum": 599.0,
+            "minimum": 400.0,
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "description": "Short, human-readable summary. Does not change per occurrence.",
+            "title": "Title",
+            "type": "string"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Correlates this response with the server's structured logs.",
+            "title": "Trace Id"
+          },
+          "type": {
+            "description": "Stable URI identifying the problem type.",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status"
+        ],
+        "title": "ValidationProblem",
+        "type": "object"
+      },
+      "ValidationResponse": {
+        "additionalProperties": false,
+        "description": "APIx against every available benchmark \u2014 the problem statement's back-test.\n\n``data_origin`` says what the APIx series itself was computed from. A score against a\nbenchmark is only meaningful when ``data_origin`` is ``COLLECTED``; for a\n``SYNTHETIC`` series the page demonstrates the harness, not a finding.",
+        "properties": {
+          "apix_daily": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesPoint"
+            },
+            "title": "Apix Daily",
+            "type": "array"
+          },
+          "apix_monthly": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesPoint"
+            },
+            "title": "Apix Monthly",
+            "type": "array"
+          },
+          "benchmarks": {
+            "items": {
+              "$ref": "#/components/schemas/Benchmark"
+            },
+            "title": "Benchmarks",
+            "type": "array"
+          },
+          "data_origin": {
+            "enum": [
+              "COLLECTED",
+              "SYNTHETIC",
+              "MIXED",
+              "NONE"
+            ],
+            "title": "Data Origin",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          },
+          "min_periods_for_score": {
+            "title": "Min Periods For Score",
+            "type": "integer"
+          },
+          "series": {
+            "title": "Series",
+            "type": "string"
+          }
+        },
+        "required": [
+          "series",
+          "data_origin",
+          "apix_daily",
+          "apix_monthly",
+          "benchmarks",
+          "min_periods_for_score",
+          "meta"
+        ],
+        "title": "ValidationResponse",
+        "type": "object"
+      },
+      "ValidationScore": {
+        "additionalProperties": false,
+        "properties": {
+          "correlation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Pearson correlation of the two index series.",
+            "title": "Correlation"
+          },
+          "directional_accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Share of period-to-period moves where both series moved the same way (%).",
+            "title": "Directional Accuracy"
+          },
+          "mape": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean absolute percentage error, index vs index.",
+            "title": "Mape"
+          },
+          "n_periods": {
+            "minimum": 0.0,
+            "title": "N Periods",
+            "type": "integer"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "period_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period From"
+          },
+          "period_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period To"
+          }
+        },
+        "required": [
+          "n_periods",
+          "period_from",
+          "period_to",
+          "correlation",
+          "mape",
+          "directional_accuracy",
+          "note"
+        ],
+        "title": "ValidationScore",
+        "type": "object"
+      },
+      "VintageValue": {
+        "additionalProperties": false,
+        "description": "A period's value as it stood at a given vintage date.",
+        "properties": {
+          "as_of": {
+            "description": "Vintage date the value is reported as of.",
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "index_run_id": {
+            "title": "Index Run Id",
+            "type": "string"
+          },
+          "period": {
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "revised_from": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Previous value, if this vintage was a revision.",
+            "title": "Revised From"
+          },
+          "revision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Reason"
+          },
+          "series": {
+            "title": "Series",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "series",
+          "period",
+          "as_of",
+          "value",
+          "index_run_id"
+        ],
+        "title": "VintageValue",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "name": "APIx",
+      "url": "https://example.org/apix"
+    },
+    "description": "\nReal-time airfare price index for India.\n\nPublished index series and route-level metadata are open to the public. Draft/\npre-release figures and microdata (individual quotes, provenance, CSV exports, method\npreview) require a researcher or official API key (`X-API-Key`).\n\n**Data status**: every `/v1` response carries `X-APIx-Data-Status` and `meta.data_status`\n(`PUBLISHED`, `PROVISIONAL` for a draft run a keyed caller asked for, or `PREVIEW` for a\nwhat-if method run, which is never a published statistic).\n\n**Errors** are RFC 9457 problem documents (`application/problem+json`).\n\n**Pagination** is cursor-based. List responses carry `pagination.next_cursor`; pass it\nback unchanged as `cursor`. Cursors are bound to the filter parameters that produced\nthem \u2014 reusing one against different filters is rejected rather than silently wrong.\n\n**Provenance**: `/v1/provenance/{quote_id}` resolves any observation back to its source,\ntimestamp and legal basis.\n",
+    "license": {
+      "name": "Open Government Data Licence \u2014 India"
+    },
+    "title": "APIx \u2014 Airfare Price Index for India",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/healthz": {
+      "get": {
+        "description": "Return 200 whenever the process is up.\n\nDeliberately checks nothing else: a liveness probe that depends on the database\nrestarts the API every time Postgres blinks.",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "The process is running."
+          }
+        },
+        "summary": "Liveness probe",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/metrics": {
+      "get": {
+        "description": "Expose the process's Prometheus registry, refreshing the DB-derived gauges first.",
+        "operationId": "metrics_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/plain; version=1.0.0; charset=utf-8": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Prometheus text exposition format."
+          }
+        },
+        "summary": "Prometheus metrics",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/readyz": {
+      "get": {
+        "description": "Report readiness dependency by dependency: a real ``SELECT 1``, a real Redis\n``PING``, and the three config files loaded and validated.",
+        "operationId": "readyz_readyz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponse"
+                }
+              }
+            },
+            "description": "Per-dependency readiness. 200 even when degraded."
+          }
+        },
+        "summary": "Readiness probe",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/v1/coverage": {
+      "get": {
+        "description": "Report collection coverage, including every gap.\n\n``routes_missing`` and a per-source status with a reason are the operational form of\n\"nothing fails silently\". A blocked source appears here with why it was blocked.",
+        "operationId": "get_coverage_v1_coverage_get",
+        "parameters": [
+          {
+            "description": "Collection date.",
+            "in": "query",
+            "name": "date",
+            "required": false,
+            "schema": {
+              "default": "2026-09-01",
+              "description": "Collection date.",
+              "format": "date",
+              "title": "Date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "What was collected on a date, and what was not",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/decomposition": {
+      "get": {
+        "description": "No index-movement decomposition method is implemented.\n\nCLAUDE.md principle 5: raise rather than invent a methodology. Building a real\nprice-component / compositional-mix decomposition (mix_route, mix_carrier,\nquality_adjustment, ...) is a methodology decision for whoever owns the index\nspecification, not something to improvise in the API layer. Always 503; the 200\nschema stays declared so the contract shape is unchanged for when it is built.",
+        "operationId": "get_decomposition_v1_decomposition_get",
+        "parameters": [
+          {
+            "description": "Period to decompose.",
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "2026-08-01",
+              "description": "Period to decompose.",
+              "format": "date",
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "series",
+            "required": false,
+            "schema": {
+              "default": "APIX.ALL.M",
+              "maxLength": 64,
+              "title": "Series",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecompositionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "No methodology is implemented for this endpoint yet."
+          }
+        },
+        "summary": "What moved the index in a period",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/export.csv": {
+      "get": {
+        "description": "Stream a series as CSV.\n\nEvery row carries ``index_run_id`` and ``data_status``, so a downloaded file remains\ntraceable once it has left the API and is sitting in someone's spreadsheet.",
+        "operationId": "export_csv_v1_export_csv_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "series",
+            "required": false,
+            "schema": {
+              "default": "APIX.ALL.M",
+              "examples": [
+                "APIX.ALL.M"
+              ],
+              "maxLength": 64,
+              "title": "Series",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Inclusive start.",
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive start.",
+              "title": "From"
+            }
+          },
+          {
+            "description": "Inclusive end.",
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive end.",
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "CSV with a fixed header row."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Microdata or pre-release figures require a researcher/official key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Download a series as CSV",
+        "tags": [
+          "export"
+        ]
+      }
+    },
+    "/v1/heatmap": {
+      "get": {
+        "description": "The route x period grid the dashboard renders as a heatmap.\n\n``freq=D`` reads the daily route series (``APIX.ROUTE.<code>.D``) \u2014 the\nroute x day \"sector heatmap\" the problem statement asks for.\n\nCached (``apix_api.cache``) keyed on the latest visible run touching any route\nseries, so a new index run invalidates every cached grid naturally.",
+        "operationId": "get_heatmap_v1_heatmap_get",
+        "parameters": [
+          {
+            "description": "Inclusive start.",
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive start.",
+              "title": "From"
+            }
+          },
+          {
+            "description": "Inclusive end.",
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive end.",
+              "title": "To"
+            }
+          },
+          {
+            "description": "M for the monthly route series, D for the daily ones.",
+            "in": "query",
+            "name": "freq",
+            "required": false,
+            "schema": {
+              "default": "M",
+              "description": "M for the monthly route series, D for the daily ones.",
+              "enum": [
+                "M",
+                "D"
+              ],
+              "title": "Freq",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+              "examples": [
+                "eyJwIjp7InBlcmlvZCI6IjIwMjYtMDYtMDEifSwicSI6ImExYjJjM2Q0ZTVmNiJ9"
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Page size. Default 100, maximum 1000.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Page size. Default 100, maximum 1000.",
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_HeatmapCell_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Route-by-period index heatmap",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/index": {
+      "get": {
+        "description": "Return the index for a series over a period range.\n\nThe value, the number of quotes behind it and the basket coverage travel together:\na consumer is never handed a number without the evidence base for it. For each\nperiod, this is the current best estimate \u2014 the most recent vintage of that period\na caller with this role can see.\n\nA series with no published values yet (the headline ``APIX.ALL.M``, until DGCA\npassenger-share weights are loaded \u2014 see docs/data-sources.md) answers with an\nempty page, not a 404: an unpublished series is a recorded gap, not an error, and\na series *code* is not validated against a fixed enum at this layer.\n\nCached (``apix_api.cache``) keyed on the resolved series' latest visible run id, so\na new index run invalidates naturally \u2014 a stale cache entry can only ever be served\nup to the moment a newer run exists, never past it.",
+        "operationId": "get_index_v1_index_get",
+        "parameters": [
+          {
+            "description": "Series code. See /v1/metadata/method for the published code list.",
+            "in": "query",
+            "name": "series",
+            "required": false,
+            "schema": {
+              "default": "APIX.ALL.M",
+              "description": "Series code. See /v1/metadata/method for the published code list.",
+              "examples": [
+                "APIX.ALL.M"
+              ],
+              "maxLength": 64,
+              "title": "Series",
+              "type": "string"
+            }
+          },
+          {
+            "description": "SDMX frequency code: D, W, M, Q or A.",
+            "in": "query",
+            "name": "freq",
+            "required": false,
+            "schema": {
+              "default": "M",
+              "description": "SDMX frequency code: D, W, M, Q or A.",
+              "examples": [
+                "M"
+              ],
+              "pattern": "^[DWMQA]$",
+              "title": "Freq",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Inclusive start period.",
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive start period.",
+              "title": "From"
+            }
+          },
+          {
+            "description": "Inclusive end period.",
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive end period.",
+              "title": "To"
+            }
+          },
+          {
+            "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+              "examples": [
+                "eyJwIjp7InBlcmlvZCI6IjIwMjYtMDYtMDEifSwicSI6ImExYjJjM2Q0ZTVmNiJ9"
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Page size. Default 100, maximum 1000.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Page size. Default 100, maximum 1000.",
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_IndexPoint_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Published index series",
+        "tags": [
+          "index"
+        ]
+      }
+    },
+    "/v1/index/contributors": {
+      "get": {
+        "description": "Audit drill-down, level 2: headline value -> the route indices it aggregates.\n\n``weight`` and ``contribution_pct_points`` are null until DGCA passenger shares are\nloaded into ``config/basket.yaml`` \u2014 the aggregation is unweighted today and the\nresponse says so rather than serving an estimated weight.",
+        "operationId": "get_index_contributors_v1_index_contributors_get",
+        "parameters": [
+          {
+            "description": "Series code. See /v1/metadata/method for the published code list.",
+            "in": "query",
+            "name": "series",
+            "required": false,
+            "schema": {
+              "default": "APIX.ALL.M",
+              "description": "Series code. See /v1/metadata/method for the published code list.",
+              "examples": [
+                "APIX.ALL.M"
+              ],
+              "maxLength": 64,
+              "title": "Series",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The period whose value is being decomposed by route.",
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "2026-08-01",
+              "description": "The period whose value is being decomposed by route.",
+              "format": "date",
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+              "examples": [
+                "eyJwIjp7InBlcmlvZCI6IjIwMjYtMDYtMDEifSwicSI6ImExYjJjM2Q0ZTVmNiJ9"
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Page size. Default 100, maximum 1000.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Page size. Default 100, maximum 1000.",
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_RouteContribution_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Route indices behind one headline value",
+        "tags": [
+          "index"
+        ]
+      }
+    },
+    "/v1/index/revisions": {
+      "get": {
+        "description": "Every change to a published value, with when and why.\n\nFirst publications appear with ``old_value = null`` so the log is a complete history\nof what was said, not only of what changed. ``index_run_id`` is not a stored column\non ``revision_log`` (it records the change, not which run made it), so it is\nresolved back through ``index_value`` \u2014 matched on (series, period, value) \u2014 in the\nsame query rather than one lookup per row: a window function keeps exactly one\ncandidate run per revision even if two runs coincidentally spliced to the same\nvalue for the same period.",
+        "operationId": "get_index_revisions_v1_index_revisions_get",
+        "parameters": [
+          {
+            "description": "Restrict to one series. Null = all.",
+            "in": "query",
+            "name": "series",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Restrict to one series. Null = all.",
+              "title": "Series"
+            }
+          },
+          {
+            "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+              "examples": [
+                "eyJwIjp7InBlcmlvZCI6IjIwMjYtMDYtMDEifSwicSI6ImExYjJjM2Q0ZTVmNiJ9"
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Page size. Default 100, maximum 1000.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Page size. Default 100, maximum 1000.",
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_RevisionEntry_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "The revision log",
+        "tags": [
+          "index"
+        ]
+      }
+    },
+    "/v1/index/vintage": {
+      "get": {
+        "description": "Answer \"what did we say this period was, on that date\".\n\nResolves against ``index_run.vintage_date``, not merely the latest run: among every\nrun whose ``vintage_date <= as_of`` and that published a value for ``period``, the\none with the latest ``vintage_date`` (ties broken by ``computed_at``) is what a\nconsumer asking on that date would have been told. Revisions are visible rather\nthan silent: ``index_value`` rows are never overwritten, so every vintage remains\nqueryable and every change appears in ``revision_log``.",
+        "operationId": "get_index_vintage_v1_index_vintage_get",
+        "parameters": [
+          {
+            "description": "Series code. See /v1/metadata/method for the published code list.",
+            "in": "query",
+            "name": "series",
+            "required": false,
+            "schema": {
+              "default": "APIX.ALL.M",
+              "description": "Series code. See /v1/metadata/method for the published code list.",
+              "examples": [
+                "APIX.ALL.M"
+              ],
+              "maxLength": 64,
+              "title": "Series",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The period being asked about.",
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "2026-08-01",
+              "description": "The period being asked about.",
+              "format": "date",
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Report the value as it stood on this date.",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "default": "2026-09-01",
+              "description": "Report the value as it stood on this date.",
+              "format": "date",
+              "title": "As Of",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VintageValue"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "A period's value as it stood on a given date",
+        "tags": [
+          "index"
+        ]
+      }
+    },
+    "/v1/leadtime/{code}": {
+      "get": {
+        "description": "Mean and median fare by advance-purchase window.\n\n``index_vs_cheapest`` rebases each window against the cheapest window on the same\nroute, which is the comparison a traveller actually cares about.",
+        "operationId": "get_leadtime_v1_leadtime__code__get",
+        "parameters": [
+          {
+            "description": "Route code.",
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "description": "Route code.",
+              "examples": [
+                "DEL-BOM"
+              ],
+              "pattern": "^[A-Z]{3}-[A-Z]{3}$",
+              "title": "Code",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Period to summarise. Defaults to the latest closed one.",
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Period to summarise. Defaults to the latest closed one.",
+              "title": "Period"
+            }
+          },
+          {
+            "description": "Restrict to one carrier (IATA designator). Omit for all carriers.",
+            "in": "query",
+            "name": "carrier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[A-Z0-9]{2}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Restrict to one carrier (IATA designator). Omit for all carriers.",
+              "title": "Carrier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadTimeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Lead-time fare curve for one route",
+        "tags": [
+          "analytics",
+          "analytics"
+        ]
+      }
+    },
+    "/v1/metadata/basket": {
+      "get": {
+        "description": "Serve the current basket.\n\n``weights_populated`` is false and every ``dgca_pax_share`` is null until the DGCA\nrelease is loaded into ``config/basket.yaml``. A consumer can therefore tell, from\nthe response alone, that the index is not yet weighted \u2014 rather than discovering it\nfrom a footnote.",
+        "operationId": "get_basket_v1_metadata_basket_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasketMetadata"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "The route basket and its weights",
+        "tags": [
+          "metadata"
+        ]
+      }
+    },
+    "/v1/metadata/carriers": {
+      "get": {
+        "description": "Serve the carrier reference list from the ``carrier`` table (``db/seeds/carriers.csv``,\nDGCA scheduled domestic operators \u2014 real reference data, loaded by ``make seed``).",
+        "operationId": "get_carriers_v1_metadata_carriers_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarriersMetadata"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Scheduled domestic carriers",
+        "tags": [
+          "metadata"
+        ]
+      }
+    },
+    "/v1/metadata/method": {
+      "get": {
+        "description": "Serve the validated method configuration and its hash.\n\n``config_hash`` is the same value stamped onto every ``index_run``, so a consumer can\nverify that a published number was produced by the method described here.",
+        "operationId": "get_method_v1_metadata_method_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodMetadata"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "The index method in force",
+        "tags": [
+          "metadata"
+        ]
+      }
+    },
+    "/v1/method/preview": {
+      "post": {
+        "description": "Run the elementary aggregate under the method in force and under the override.\n\nNever a published statistic \u2014 ``X-APIx-Data-Status: PREVIEW`` always, regardless of\ncaller role.",
+        "operationId": "post_method_preview_v1_method_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodOverrides"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodPreviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Microdata or pre-release figures require a researcher/official key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Compute a preview index run under modified method settings",
+        "tags": [
+          "method"
+        ]
+      }
+    },
+    "/v1/nowcast": {
+      "get": {
+        "description": "No nowcast bridge model is implemented.\n\n``apix_core.nowcast`` is an empty stub \u2014 CLAUDE.md principle 5: raise rather than\ninvent a model to make the endpoint return something. Always 503; the 200 schema\nstays declared so the contract shape is unchanged for when a real model lands.",
+        "operationId": "get_nowcast_v1_nowcast_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "target_series",
+            "required": false,
+            "schema": {
+              "default": "APIX.ALL.M",
+              "maxLength": 64,
+              "title": "Target Series",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_NowcastPoint_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "No methodology is implemented for this endpoint yet."
+          }
+        },
+        "summary": "Model estimate for the period that has not closed",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v1/pipeline": {
+      "get": {
+        "description": "What the collector gathered, what cleaning did to it, and under what rules.",
+        "operationId": "get_pipeline_v1_pipeline_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Collection, cleaning and compliance, end to end",
+        "tags": [
+          "validation"
+        ]
+      }
+    },
+    "/v1/provenance/{quote_id}": {
+      "get": {
+        "description": "Resolve a quote back to its source, legal basis, cleaning and index contribution.\n\nThis is principle 1 made operational. Every published index value is resolvable to\nthe quotes behind it, and every quote is resolvable through this endpoint to the\nsource it came from, the moment it was observed and the legal basis on which it was\ncollected. If this endpoint cannot answer for a quote, that quote should not have\ncontributed to a published number.\n\nMicrodata: requires a researcher or official API key.",
+        "operationId": "get_provenance_v1_provenance__quote_id__get",
+        "parameters": [
+          {
+            "description": "fare_quote.id",
+            "in": "path",
+            "name": "quote_id",
+            "required": true,
+            "schema": {
+              "description": "fare_quote.id",
+              "format": "uuid",
+              "title": "Quote Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvenanceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Microdata or pre-release figures require a researcher/official key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Full audit trail for one fare quote",
+        "tags": [
+          "provenance"
+        ]
+      }
+    },
+    "/v1/quotes": {
+      "get": {
+        "description": "List the observations a route index value rests on.",
+        "operationId": "list_quotes_v1_quotes_get",
+        "parameters": [
+          {
+            "description": "Route code.",
+            "in": "query",
+            "name": "route",
+            "required": false,
+            "schema": {
+              "default": "DEL-BOM",
+              "description": "Route code.",
+              "examples": [
+                "DEL-BOM"
+              ],
+              "pattern": "^[A-Z]{3}-[A-Z]{3}$",
+              "title": "Route",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Period the quotes contributed to.",
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "2026-08-01",
+              "description": "Period the quotes contributed to.",
+              "format": "date",
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Include observations dropped by outlier screens or imputation.",
+            "in": "query",
+            "name": "include_screened",
+            "required": false,
+            "schema": {
+              "default": true,
+              "description": "Include observations dropped by outlier screens or imputation.",
+              "title": "Include Screened",
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+              "examples": [
+                "eyJwIjp7InBlcmlvZCI6IjIwMjYtMDYtMDEifSwicSI6ImExYjJjM2Q0ZTVmNiJ9"
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Page size. Default 100, maximum 1000.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Page size. Default 100, maximum 1000.",
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_QuoteSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Microdata or pre-release figures require a researcher/official key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Cleaned quotes behind a route and period",
+        "tags": [
+          "provenance"
+        ]
+      }
+    },
+    "/v1/routes": {
+      "get": {
+        "description": "List the basket.\n\n``dgca_pax_share`` is null on every route until the DGCA release is loaded into\n``config/basket.yaml``. That null is the honest answer, not a missing field.",
+        "operationId": "list_routes_v1_routes_get",
+        "parameters": [
+          {
+            "description": "Defaults to the basket in force today.",
+            "in": "query",
+            "name": "basket_version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Defaults to the basket in force today.",
+              "title": "Basket Version"
+            }
+          },
+          {
+            "description": "Only routes active on this date.",
+            "in": "query",
+            "name": "active_on",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only routes active on this date.",
+              "title": "Active On"
+            }
+          },
+          {
+            "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+              "examples": [
+                "eyJwIjp7InBlcmlvZCI6IjIwMjYtMDYtMDEifSwicSI6ImExYjJjM2Q0ZTVmNiJ9"
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Page size. Default 100, maximum 1000.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Page size. Default 100, maximum 1000.",
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_RouteSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Routes in the current basket",
+        "tags": [
+          "routes"
+        ]
+      }
+    },
+    "/v1/routes/{code}/series": {
+      "get": {
+        "description": "Return the fare distribution for one route over time.\n\nQuartiles are returned alongside the mean because an airfare distribution is\nright-skewed: the mean alone misrepresents what a traveller pays. Grouped by the\nday fares were observed (``query_date``, derived as ``travel_date - advance_days``)\nand, when ``advance_days`` is not filtered, reported at the 14-day lead time\n(the mid-window default the shipped basket documents) rather than blending lead\ntimes of very different price levels into one misleading average.",
+        "operationId": "get_route_series_v1_routes__code__series_get",
+        "parameters": [
+          {
+            "description": "Directional route code, e.g. DEL-BOM.",
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "description": "Directional route code, e.g. DEL-BOM.",
+              "examples": [
+                "DEL-BOM"
+              ],
+              "pattern": "^[A-Z]{3}-[A-Z]{3}$",
+              "title": "Code",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Restrict to one advance-purchase lead time.",
+            "in": "query",
+            "name": "advance_days",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 365,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Restrict to one advance-purchase lead time.",
+              "title": "Advance Days"
+            }
+          },
+          {
+            "description": "Restrict to one carrier (IATA designator). Omit for all carriers.",
+            "in": "query",
+            "name": "carrier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[A-Z0-9]{2}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Restrict to one carrier (IATA designator). Omit for all carriers.",
+              "title": "Carrier"
+            }
+          },
+          {
+            "description": "Inclusive start.",
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive start.",
+              "title": "From"
+            }
+          },
+          {
+            "description": "Inclusive end.",
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive end.",
+              "title": "To"
+            }
+          },
+          {
+            "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor from a previous response's `pagination.next_cursor`.",
+              "examples": [
+                "eyJwIjp7InBlcmlvZCI6IjIwMjYtMDYtMDEifSwicSI6ImExYjJjM2Q0ZTVmNiJ9"
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Page size. Default 100, maximum 1000.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "description": "Page size. Default 100, maximum 1000.",
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_RouteSeriesPoint_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Fare series for one route",
+        "tags": [
+          "routes"
+        ]
+      }
+    },
+    "/v1/sdmx/data/{flow_ref}/{key}": {
+      "get": {
+        "description": "Serve one dataflow as an SDMX-JSON 2.0.0 data message.\n\nThe observation attributes carry ``OBS_STATUS`` and the count of underlying quotes,\nso provenance survives the translation into SDMX rather than being dropped at the\nboundary.",
+        "operationId": "get_sdmx_data_v1_sdmx_data__flow_ref___key__get",
+        "parameters": [
+          {
+            "description": "Dataflow reference, `agencyId,dataflowId,version`, e.g. `IN_APIX,DF_AIRFARE_INDEX,1.0.0`.",
+            "in": "path",
+            "name": "flow_ref",
+            "required": true,
+            "schema": {
+              "description": "Dataflow reference, `agencyId,dataflowId,version`, e.g. `IN_APIX,DF_AIRFARE_INDEX,1.0.0`.",
+              "examples": [
+                "IN_APIX,DF_AIRFARE_INDEX,1.0.0"
+              ],
+              "title": "Flow Ref",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Series key: dimension values in DSD order, dot-separated. `M.ALL.ALL.ALL` is FREQ.ROUTE.CARRIER_TYPE.AP_WINDOW.",
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "description": "Series key: dimension values in DSD order, dot-separated. `M.ALL.ALL.ALL` is FREQ.ROUTE.CARRIER_TYPE.AP_WINDOW.",
+              "examples": [
+                "M.ALL.ALL.ALL"
+              ],
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdmxMessage"
+                }
+              },
+              "application/vnd.sdmx.data+json;version=2.0.0": {}
+            },
+            "description": "An SDMX-JSON 2.0.0 data message."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "SDMX-JSON 2.0 data message",
+        "tags": [
+          "sdmx"
+        ]
+      }
+    },
+    "/v1/validation": {
+      "get": {
+        "description": "Every benchmark the index can be checked against, with its score.\n\n* **CPI air fare** (MoSPI, eSankhyiki) \u2014 monthly; scored against the monthly mean of\n  the daily APIx series.\n* **DGCA average fare** \u2014 monthly, INR; the mean across loaded basket routes, rebased.\n* **Unit-value mean** \u2014 the plain daily average of the same quotes APIx is built\n  from. Not a benchmark of truth: it shows how far a naive average (which moves with\n  the booking-window and route mix) departs from a matched-sample index.",
+        "operationId": "get_validation_v1_validation_get",
+        "parameters": [
+          {
+            "description": "Daily APIx series to validate.",
+            "in": "query",
+            "name": "series",
+            "required": false,
+            "schema": {
+              "default": "APIX.ALL.D",
+              "description": "Daily APIx series to validate.",
+              "maxLength": 64,
+              "title": "Series",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Back-test: APIx against CPI air fare, DGCA average fares and a unit-value mean",
+        "tags": [
+          "validation"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Liveness, readiness and metrics.",
+      "name": "operations"
+    },
+    {
+      "description": "Published index series and their vintages.",
+      "name": "index"
+    },
+    {
+      "description": "The route basket and per-route fare series.",
+      "name": "routes"
+    },
+    {
+      "description": "Lead-time, heatmap, decomposition, coverage.",
+      "name": "analytics"
+    },
+    {
+      "description": "The basket and the method actually in force.",
+      "name": "metadata"
+    },
+    {
+      "description": "What-if preview runs under a modified method.",
+      "name": "method"
+    },
+    {
+      "description": "Audit trail from a number back to a quote.",
+      "name": "provenance"
+    },
+    {
+      "description": "SDMX-JSON 2.0 for statistical consumers.",
+      "name": "sdmx"
+    },
+    {
+      "description": "Flat CSV downloads.",
+      "name": "export"
+    }
+  ]
+}

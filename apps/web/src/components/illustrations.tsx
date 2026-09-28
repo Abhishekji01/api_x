@@ -170,11 +170,17 @@ export function AuditArt(props: ArtProps) {
   );
 }
 
-/** The APIx mark: a rising index line through a rounded tile, in the brand navy. */
+/** The APIx mark: a rising index line through a rounded tile, in a modern gradient. */
 export function ApixMark(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 40 40" aria-hidden="true" {...props}>
-      <rect width="40" height="40" rx="9" fill="#0d366b" />
+      <defs>
+        <linearGradient id="apix-mark-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#2563eb" />
+          <stop offset="100%" stopColor="#0284c7" />
+        </linearGradient>
+      </defs>
+      <rect width="40" height="40" rx="10" fill="url(#apix-mark-grad)" />
       <path
         d="M8 27 L15 21 L21 24 L32 12"
         fill="none"
@@ -183,8 +189,8 @@ export function ApixMark(props: SVGProps<SVGSVGElement>) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="32" cy="12" r="3" fill="#86b6ef" />
-      <path d="M8 31 H32" stroke="#86b6ef" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+      <circle cx="32" cy="12" r="3" fill="#38bdf8" />
+      <path d="M8 31 H32" stroke="rgba(255, 255, 255, 0.4)" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
