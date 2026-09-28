@@ -225,3 +225,25 @@ jobs:
       - name: Tear down
         if: always()
         run: docker compose down -v
+
+  web:
+    name: Dashboard — type-check, demo build, end-to-end
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - name: Type-check and production build
+        run: npm run build
+      - name: Static demo build
+        run: npm run build:demo
+      - run: npx playwright install --with-deps chromium
+      - name: End-to-end (against the static demo)
+        run: npx playwright test

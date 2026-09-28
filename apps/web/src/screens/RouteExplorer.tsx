@@ -17,7 +17,7 @@ import { RouteExplorerArt } from "../components/illustrations";
 import { PageHeader } from "../components/PageHeader";
 import { RouteMap } from "../components/RouteMap";
 import { buildCorridors } from "../lib/corridors";
-import { formatINR, formatPeriod } from "../lib/format";
+import { formatDate, formatDay, formatINR } from "../lib/format";
 import { useTheme } from "../theme/ThemeContext";
 import {
   baseOption,
@@ -78,7 +78,7 @@ export default function RouteExplorer() {
 
   const option = useMemo(() => {
     if (!allLoaded) return null;
-    const periods = batch[0]?.data?.items.map((p) => formatPeriod(p.period)) ?? [];
+    const periods = batch[0]?.data?.items.map((p) => formatDay(p.period)) ?? [];
     const soldOutIndices = new Set<number>();
     batch.forEach((q) => {
       q.data?.items.forEach((p, i) => {
@@ -123,7 +123,7 @@ export default function RouteExplorer() {
         const variant = activeVariants[s];
         const point = batch[s]?.data?.items[d];
         if (variant === undefined || point === undefined) return "";
-        return `${variant.label}, ${formatPeriod(point.period)}: ${formatINR(point.mean_fare)}${
+        return `${variant.label}, ${formatDate(point.period)}: ${formatINR(point.mean_fare)}${
           point.sold_out ? ", sold out" : ""
         }.`;
       },
@@ -137,7 +137,7 @@ export default function RouteExplorer() {
       caption: `Fare curve for ${routeCode}, split by ${split === "window" ? "advance window" : "carrier"}`,
       columns: ["Period", ...activeVariants.map((v) => v.label)],
       rows: periods.map((period, i) => [
-        formatPeriod(period),
+        formatDate(period),
         ...activeVariants.map((_, vi) => {
           const point = batch[vi]?.data?.items[i];
           if (point === undefined) return "—";
@@ -169,7 +169,7 @@ export default function RouteExplorer() {
         art={<RouteExplorerArt />}
       />
 
-      <div className="flex flex-wrap items-end gap-4 rounded-2xl border border-edge bg-surface p-5 shadow-card">
+      <div className="flex flex-wrap items-end gap-4 rounded-xl border border-edge bg-surface p-5 shadow-card">
         <div>
           <label htmlFor="route-select" className="block text-sm font-medium text-ink-2">
             Route
@@ -203,7 +203,7 @@ export default function RouteExplorer() {
                 onClick={() => setSplit(mode)}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                   split === mode
-                    ? "bg-accent text-navy shadow-sm"
+                    ? "bg-accent text-white shadow-sm"
                     : "text-ink-2 hover:text-ink"
                 }`}
               >

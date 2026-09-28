@@ -158,18 +158,25 @@ async def get_heatmap(
     session: SessionDep,
     from_: Annotated[date | None, Query(alias="from", description="Inclusive start.")] = None,
     to: Annotated[date | None, Query(description="Inclusive end.")] = None,
+    freq: Annotated[
+        Literal["M", "D"],
+        Query(description="M for the monthly route series, D for the daily ones."),
+    ] = "M",
     cursor: CursorParam = None,
     limit: LimitParam = DEFAULT_PAGE_SIZE,
 ) -> Page[HeatmapCell]:
     """The route x period grid the dashboard renders as a heatmap.
 
+    ``freq=D`` reads the daily route series (``APIX.ROUTE.<code>.D``) — the
+    route x day "sector heatmap" the problem statement asks for.
+
     Cached (``apix_api.cache``) keyed on the latest visible run touching any route
     series, so a new index run invalidates every cached grid naturally.
     """
-    route_series = await get_series_ids_by_prefix(session, "APIX.ROUTE.%.M")
+    route_series = await get_series_ids_by_prefix(session, f"APIX.ROUTE.%.{freq}")
     route_series_ids = list(route_series)
     run_fingerprint = await latest_run_fingerprint(session, route_series_ids, role=Role.PUBLIC)
-    cache_key = build_key("heatmap", from_=from_, to=to, run=run_fingerprint)
+    cache_key = build_key("heatmap", from_=from_, to=to, freq=freq, run=run_fingerprint)
     redis = request.app.state.cache_redis
     cached = cast("dict[str, Any] | None", await cache_get_json(redis, cache_key))
 
@@ -196,7 +203,7 @@ async def get_heatmap(
             ttl_s=get_settings().api_cache_ttl_s,
         )
 
-    sig = query_signature(from_=from_, to=to)
+    sig = query_signature(from_=from_, to=to, freq=freq)
     page_items, page_info = paginate_in_memory(
         items,
         cursor=cursor,

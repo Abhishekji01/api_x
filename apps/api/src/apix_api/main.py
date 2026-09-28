@@ -39,6 +39,7 @@ from apix_api.routers import (
     quotes,
     routes,
     sdmx,
+    validation,
 )
 from apix_core.config import ConfigError, load_access, load_basket, load_method, load_sources
 from apix_core.models import Role
@@ -186,6 +187,7 @@ def create_app() -> FastAPI:
     app.include_router(preview.router)
     app.include_router(sdmx.router)
     app.include_router(export.router)
+    app.include_router(validation.router)
 
     return app
 

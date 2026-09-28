@@ -11,7 +11,9 @@
     "lint": "tsc --noEmit",
     "generate:api": "openapi-typescript ../../docs/openapi.json -o src/api/schema.d.ts",
     "e2e": "playwright test",
-    "e2e:install": "playwright install chromium"
+    "e2e:install": "playwright install chromium",
+    "harvest:snapshot": "node scripts/harvest-snapshot.mjs",
+    "build:demo": "VITE_APIX_STATIC=1 tsc -b && VITE_APIX_STATIC=1 vite build"
   },
   "dependencies": {
     "react": "18.3.1",

@@ -50,7 +50,7 @@ export default function Audit() {
   const contributors = useContributors(HEADLINE_SERIES, period ?? "2026-08-01");
   const quotes = useQuotes(route ?? "", period ?? "2026-08-01");
   const provenance = useProvenance(quoteId);
-  const revisions = useRevisions();
+  const revisions = useRevisions(HEADLINE_SERIES);
 
   const [vintagePeriod, setVintagePeriod] = useState("2026-08-01");
   const [vintageAsOf, setVintageAsOf] = useState(todayISO());
@@ -130,7 +130,7 @@ export default function Audit() {
 
       {period !== null && (
         <section
-          className="rounded-2xl border border-edge bg-surface p-5 shadow-card"
+          className="rounded-xl border border-edge bg-surface p-5 shadow-card"
           aria-label="Provenance drill-down"
         >
           <nav aria-label="Drill-down path" className="mb-4 flex flex-wrap items-center gap-1 text-sm">
@@ -165,8 +165,8 @@ export default function Audit() {
                         onClick={() => setRoute(c.route_code)}
                         className="w-full rounded-xl border border-edge px-3 py-2.5 text-left text-sm transition-colors hover:border-accent hover:bg-raised"
                       >
-                        <span className="font-mono font-semibold text-ink">{c.route_code}</span>
-                        <span className="ml-2 font-mono text-ink-2">index {formatIndex(c.index_value)}</span>
+                        <span className="tnum font-semibold text-ink">{c.route_code}</span>
+                        <span className="ml-2 tnum text-ink-2">index {formatIndex(c.index_value)}</span>
                         <span className="block text-xs text-ink-2">
                           {c.n_quotes.toLocaleString("en-IN")} quotes ·{" "}
                           {c.weight === null ? "unweighted (Phase 2 loads DGCA weights)" : `weight ${c.weight}`}
@@ -199,10 +199,10 @@ export default function Audit() {
                     <tbody>
                       {quotes.data.items.map((q) => (
                         <tr key={q.quote_id} className="border-b border-grid last:border-0 even:bg-stripe">
-                          <td className="px-3 py-2 font-mono">{q.carrier_iata}</td>
-                          <td className="px-3 py-2 font-mono">{formatDate(q.travel_date)}</td>
-                          <td className="px-3 py-2 font-mono">{q.advance_days}</td>
-                          <td className="px-3 py-2 font-mono">{formatINR(q.total_fare)}</td>
+                          <td className="px-3 py-2 tnum">{q.carrier_iata}</td>
+                          <td className="px-3 py-2 tnum">{formatDate(q.travel_date)}</td>
+                          <td className="px-3 py-2 tnum">{q.advance_days}</td>
+                          <td className="px-3 py-2 tnum">{formatINR(q.total_fare)}</td>
                           <td className="px-3 py-2">
                             {q.is_outlier && (
                               <span className="rounded-full bg-critical-soft px-2 py-0.5 text-xs font-semibold text-critical-ink">
@@ -290,7 +290,7 @@ export default function Audit() {
       )}
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-edge bg-surface p-5 shadow-card">
+        <div className="rounded-xl border border-edge bg-surface p-5 shadow-card">
           <h2 className="mb-3 text-base font-semibold text-ink">Vintage selector</h2>
           <div className="flex flex-wrap items-end gap-3">
             <div>
@@ -321,7 +321,7 @@ export default function Audit() {
           {vintage.data !== undefined && (
             <p className="mt-4 rounded-xl bg-raised px-3 py-2.5 text-sm text-ink">
               Value as of {formatDate(vintage.data.as_of)}:{" "}
-              <strong className="font-mono">{formatIndex(vintage.data.value)}</strong>
+              <strong className="tnum">{formatIndex(vintage.data.value)}</strong>
               {vintage.data.revised_from !== null && vintage.data.revised_from !== undefined && (
                 <span className="ml-2 text-ink-2">
                   (revised from {formatIndex(vintage.data.revised_from)})
@@ -331,17 +331,19 @@ export default function Audit() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-edge bg-surface p-5 shadow-card">
+        <div className="rounded-xl border border-edge bg-surface p-5 shadow-card">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-ink">Revision log</h2>
+            <h2 className="text-base font-semibold text-ink">
+              Revision log <span className="font-normal text-ink-2">· national monthly series</span>
+            </h2>
             {revisions.data !== undefined && <DataStatusBadge status={revisions.data.meta.data_status} />}
           </div>
           {revisions.isLoading && <p className="text-sm text-ink-2">Loading…</p>}
           {revisions.data !== undefined && (
-            <ul className="flex flex-col gap-2 text-sm">
+            <ul className="flex max-h-[420px] flex-col gap-2 overflow-y-auto pr-1 text-sm">
               {revisions.data.items.map((r, i) => (
                 <li key={i} className="border-b border-grid pb-2 last:border-0">
-                  <p className="font-mono text-ink">
+                  <p className="tnum text-ink">
                     {r.series} · {formatPeriod(r.period)}:{" "}
                     {r.old_value === null || r.old_value === undefined ? (
                       <span>first published at {formatIndex(r.new_value)}</span>

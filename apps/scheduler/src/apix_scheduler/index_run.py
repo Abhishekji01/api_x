@@ -535,10 +535,18 @@ def _cell_windows_to_frame(windows: list[_CellWindow]) -> pd.DataFrame:
 
 
 def _rollup_hierarchy(
-    elementary: pd.DataFrame, value_col: str, basket: BasketConfig, method: MethodConfigFile
+    elementary: pd.DataFrame,
+    value_col: str,
+    basket: BasketConfig,
+    method: MethodConfigFile,
+    freq: str = "M",
 ) -> dict[str, tuple[float, int, float]]:
     """One cross-section — headline, route, carrier-type and advance-window series —
     at whichever end of the window ``value_col`` names.
+
+    ``freq`` is the SDMX frequency suffix the series codes are published under: ``M``
+    for the monthly publication, ``D`` for the daily series
+    (:mod:`apix_scheduler.daily_index_run`). The maths is identical either way.
     """
     work = elementary.rename(columns={value_col: "index_value"})[
         ["route_code", "advance_window", "carrier_type", "index_value", "n_quotes", "coverage_pct"]
@@ -548,7 +556,7 @@ def _rollup_hierarchy(
 
     result: dict[str, tuple[float, int, float]] = {}
     for _, row in routes.iterrows():
-        result[f"APIX.ROUTE.{row['route_code']}.M"] = (
+        result[f"APIX.ROUTE.{row['route_code']}.{freq}"] = (
             float(row["index_value"]),
             int(row["n_quotes"]),
             float(row["coverage_pct"]),
@@ -558,7 +566,7 @@ def _rollup_hierarchy(
     try:
         national, _excluded = national_index(routes, dgca_pax_share)
         row = national.iloc[0]
-        result[_SERIES_HEADLINE] = (
+        result[f"APIX.ALL.{freq}"] = (
             float(row["index_value"]),
             int(row["n_quotes"]),
             float(row["coverage_pct"]),
@@ -567,13 +575,13 @@ def _rollup_hierarchy(
         log.info("index_run_national_unpublishable", value_col=value_col, reason=str(exc))
 
     for _, row in sub_index_by(work, "carrier_type", "n_quotes").iterrows():
-        result[f"APIX.CARRIERTYPE.{row['carrier_type']}.M"] = (
+        result[f"APIX.CARRIERTYPE.{row['carrier_type']}.{freq}"] = (
             float(row["index_value"]),
             int(row["n_quotes"]),
             float(row["coverage_pct"]),
         )
     for _, row in sub_index_by(work, "advance_window", "n_quotes").iterrows():
-        result[f"APIX.WINDOW.{row['advance_window']}.M"] = (
+        result[f"APIX.WINDOW.{row['advance_window']}.{freq}"] = (
             float(row["index_value"]),
             int(row["n_quotes"]),
             float(row["coverage_pct"]),
@@ -582,7 +590,7 @@ def _rollup_hierarchy(
 
 
 def _series_dimensions(series_code: str) -> dict[str, str]:
-    if series_code == _SERIES_HEADLINE:
+    if series_code.startswith("APIX.ALL."):
         return {"scope": "national"}
     parts = series_code.split(".")
     if parts[1] == "ROUTE":
@@ -599,7 +607,9 @@ def _reference_period(method: MethodConfigFile) -> date:
     return date(int(year_str), int(month_str), 1)
 
 
-def _ensure_series(session: Session, series_codes: set[str]) -> dict[str, uuid.UUID]:
+def _ensure_series(
+    session: Session, series_codes: set[str], frequency: Frequency = Frequency.MONTHLY
+) -> dict[str, uuid.UUID]:
     existing: dict[str, uuid.UUID] = dict(
         session.execute(select(Series.code, Series.id).where(Series.code.in_(series_codes)))
         .tuples()
@@ -612,7 +622,7 @@ def _ensure_series(session: Session, series_codes: set[str]) -> dict[str, uuid.U
             code=code,
             description=f"APIx series {code}",
             dimensions=_series_dimensions(code),
-            frequency=Frequency.MONTHLY,
+            frequency=frequency,
         )
         session.add(row)
         existing[code] = row.id

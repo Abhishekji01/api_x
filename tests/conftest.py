@@ -11,6 +11,7 @@ Two rules govern everything in here:
 
 from __future__ import annotations
 
+import os
 import shutil
 from collections.abc import Iterator
 from pathlib import Path
@@ -47,7 +48,7 @@ def _docker_available() -> bool:
 DOCKER_AVAILABLE = _docker_available()
 
 requires_docker = pytest.mark.skipif(
-    not DOCKER_AVAILABLE,
+    not DOCKER_AVAILABLE and not os.environ.get("APIX_TEST_DATABASE_URL"),
     reason="no container runtime available; run `make test-integration` where one is",
 )
 
@@ -104,6 +105,13 @@ def postgres_url() -> Iterator[str]:
     uses, so the hypertable path in migration 0001 is genuinely exercised rather than
     silently falling back to a plain table.
     """
+    external = os.environ.get("APIX_TEST_DATABASE_URL")
+    if external:
+        # Opt-in: an empty, throwaway database you created yourself (plain PostgreSQL
+        # works; migration 0001 falls back loudly when TimescaleDB is absent). Useful
+        # where containers cannot be pulled. Never point this at a database you keep.
+        yield external
+        return
     if not DOCKER_AVAILABLE:
         pytest.skip("no container runtime available")
 

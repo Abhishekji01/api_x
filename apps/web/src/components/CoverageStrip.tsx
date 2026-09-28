@@ -57,7 +57,7 @@ export function CoverageIndicator({ coverage }: { coverage: CoverageResponse }) 
           x="38"
           y="42"
           textAnchor="middle"
-          className="fill-ink font-mono text-[15px] font-semibold"
+          className="fill-ink tnum text-[15px] font-semibold"
         >
           {pct.toFixed(0)}%
         </text>

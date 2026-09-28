@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
-from apix_api.routers import analytics, export, health, index, metadata, provenance, routes, sdmx
+from apix_api.routers import (
+    analytics,
+    export,
+    health,
+    index,
+    metadata,
+    provenance,
+    routes,
+    sdmx,
+    validation,
+)
 
 __all__ = [
     "analytics",
@@ -13,4 +23,5 @@ __all__ = [
     "provenance",
     "routes",
     "sdmx",
+    "validation",
 ]

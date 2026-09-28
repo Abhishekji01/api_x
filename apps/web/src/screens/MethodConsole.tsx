@@ -92,7 +92,7 @@ export default function MethodConsole() {
       tooltip: tooltipDefaults(tokens),
       legend: legendDefaults(tokens),
       xAxis: { ...timeAxis(tokens), data: periods },
-      yAxis: valueAxis(tokens, "Index (ref. period = 100)"),
+      yAxis: valueAxis(tokens, "Price relative (window start = 1.00)"),
       series: [
         {
           name: "Method in force",
@@ -100,15 +100,17 @@ export default function MethodConsole() {
           data: preview.data.points.map((p) => p.baseline_value),
           lineStyle: { width: 2, color: tokens.inkMuted, type: "dashed" as const },
           itemStyle: { color: tokens.inkMuted },
-          showSymbol: false,
+          showSymbol: preview.data.points.length < 20,
+          symbolSize: 10,
         },
         {
           name: preview.data.is_baseline ? "Preview (matches method in force)" : "Preview",
           type: "line" as const,
           data: preview.data.points.map((p) => p.value),
           lineStyle: { width: 2, color: tokens.series[0] },
-          itemStyle: { color: tokens.series[0] },
-          showSymbol: false,
+          itemStyle: { color: tokens.series[0], borderColor: tokens.surface, borderWidth: 2 },
+          showSymbol: preview.data.points.length < 20,
+          symbolSize: 10,
         },
       ],
     };
@@ -172,7 +174,7 @@ export default function MethodConsole() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
         <form
           aria-label="Method controls"
-          className="flex flex-col gap-4 rounded-2xl border border-edge bg-surface p-5 shadow-card"
+          className="flex flex-col gap-4 rounded-xl border border-edge bg-surface p-5 shadow-card"
           onSubmit={(e) => e.preventDefault()}
         >
           <Field label="Elementary formula" htmlFor="mc-elementary">
@@ -314,7 +316,7 @@ export default function MethodConsole() {
               ].map(([label, value]) => (
                 <div key={label} className="rounded-xl border border-edge bg-surface p-3 shadow-card">
                   <dt className="text-xs text-ink-2">{label}</dt>
-                  <dd className="mt-0.5 font-mono text-lg font-semibold tabular-nums text-ink">{value}</dd>
+                  <dd className="mt-0.5 tnum text-lg font-semibold tabular-nums text-ink">{value}</dd>
                 </div>
               ))}
             </dl>

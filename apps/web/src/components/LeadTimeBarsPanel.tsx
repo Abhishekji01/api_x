@@ -6,6 +6,7 @@
  */
 
 import { useMemo } from "react";
+import type { ReactNode } from "react";
 import { useLeadtime } from "../api/hooks";
 import { formatINR } from "../lib/format";
 import { useTheme } from "../theme/ThemeContext";
@@ -13,7 +14,15 @@ import { baseOption, gridDefaults, timeAxis, tooltipDefaults, valueAxis } from "
 import { ChartPanel } from "./ChartPanel";
 import { EChart } from "./EChart";
 
-export function LeadTimeBarsPanel({ routeCode, carrier }: { routeCode: string; carrier: string }) {
+export function LeadTimeBarsPanel({
+  routeCode,
+  carrier,
+  toolbar,
+}: {
+  routeCode: string;
+  carrier: string;
+  toolbar?: ReactNode;
+}) {
   const { tokens } = useTheme();
   const leadtime = useLeadtime(routeCode, carrier === "" ? undefined : carrier);
 
@@ -67,8 +76,9 @@ export function LeadTimeBarsPanel({ routeCode, carrier }: { routeCode: string; c
 
   return (
     <ChartPanel
-      title="Lead-time analysis"
-      subtitle={`${routeCode}${carrier === "" ? "" : ` — ${carrier}`}, mean fare by advance window`}
+      title="Booking curve"
+      subtitle={`${routeCode}${carrier === "" ? "" : ` — ${carrier}`}: mean fare by days before departure`}
+      toolbar={toolbar}
       isLoading={leadtime.isLoading}
       error={leadtime.error}
       isEmpty={leadtime.data?.buckets.length === 0}

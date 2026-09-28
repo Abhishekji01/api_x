@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-09-28T14:19:43.722Z",
+  "api": "http://localhost:8000",
+  "snapshot_date": "2026-09-27",
+  "first_day": "2026-07-30",
+  "packs": [
+    "heatmap",
+    "index",
+    "leadtime",
+    "metadata",
+    "method",
+    "pipeline",
+    "provenance",
+    "quotes",
+    "routes",
+    "validation"
+  ],
+  "responses": 1834,
+  "note": "Verbatim API responses recorded for the static demo. Not an official statistical release."
+}

@@ -50,7 +50,7 @@ export default function LeadTime() {
     const labels = buckets.map((b) => `${b.min_days}–${b.max_days}d`);
     return {
       ...baseOption(tokens),
-      grid: gridDefaults(),
+      grid: { ...gridDefaults(), bottom: 56 },
       tooltip: {
         ...tooltipDefaults(tokens),
         trigger: "axis" as const,
@@ -180,7 +180,7 @@ export default function LeadTime() {
         art={<LeadTimeArt />}
       />
 
-      <div className="flex flex-wrap items-end gap-4 rounded-2xl border border-edge bg-surface p-5 shadow-card">
+      <div className="flex flex-wrap items-end gap-4 rounded-xl border border-edge bg-surface p-5 shadow-card">
         <div>
           <label htmlFor="lt-route" className="block text-sm font-medium text-ink-2">
             Route

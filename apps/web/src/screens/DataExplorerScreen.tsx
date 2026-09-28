@@ -65,7 +65,7 @@ export default function DataExplorerScreen() {
           <a
             href={csvHref}
             download={`apix_quotes_${effectiveRoute}_${period}.csv`}
-            className="flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-xs font-bold text-navy shadow-sm hover:brightness-110 transition-colors"
+            className="flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:brightness-110 transition-colors"
           >
             <IconDownload width={15} height={15} />
             Export {quotes.data?.items.length ?? 0} rows shown
@@ -135,11 +135,11 @@ export default function DataExplorerScreen() {
               <tbody className="divide-y divide-slate-100">
                 {quotes.data.items.map((q) => (
                   <tr key={q.quote_id} className="hover:bg-raised transition-colors">
-                    <td className="px-5 py-3 font-mono">{formatDate(q.travel_date)}</td>
-                    <td className="px-5 py-3 font-mono font-medium">T+{q.advance_days}</td>
+                    <td className="px-5 py-3 tnum">{formatDate(q.travel_date)}</td>
+                    <td className="px-5 py-3 tnum font-medium">T+{q.advance_days}</td>
                     <td className="px-5 py-3 font-bold text-accent-ink">{q.carrier_iata}</td>
-                    <td className="px-5 py-3 font-mono">{q.source_code}</td>
-                    <td className="px-5 py-3 font-mono font-bold text-ink">{formatINR(q.total_fare)}</td>
+                    <td className="px-5 py-3 tnum">{q.source_code}</td>
+                    <td className="px-5 py-3 tnum font-bold text-ink">{formatINR(q.total_fare)}</td>
                     <td className="px-5 py-3">
                       {q.is_outlier ? (
                         <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold bg-rose-50 text-rose-700">

@@ -15,7 +15,7 @@ COVERAGE_MIN ?= 80
 .PHONY: help install up down logs migrate seed load-dgca lint fmt typecheck test \
         test-integration openapi collect-once index-run seed-synthetic synthetic-curves \
         nowcast-run watchdog-probe watchdog-report backtest load-atf load-cpi \
-        load-dgca-fares clean
+        load-dgca-fares clean daily-index-run fetch-cpi demo-snapshot demo-build
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -87,6 +87,11 @@ INDEX_RUN_DAYS ?= 21
 index-run: ## Compute the index for a date over the synthetic dataset. Usage: make index-run DATE=2026-09-01 [INDEX_RUN_DAYS=21]
 	$(UV) run python -m apix_scheduler.index_run --date $(DATE) --days $(INDEX_RUN_DAYS)
 
+DAILY_INDEX_DAYS ?= 60
+
+daily-index-run: ## Publish the DAILY series (APIX.ALL.D + breakdowns) over a window. Usage: make daily-index-run DATE=2026-09-27 [DAILY_INDEX_DAYS=60]
+	$(UV) run python -m apix_scheduler.daily_index_run --date $(DATE) --days $(DAILY_INDEX_DAYS)
+
 DAYS ?= 90
 
 seed-synthetic: ## Generate the labelled synthetic dataset. Usage: make seed-synthetic DAYS=90
@@ -106,7 +111,12 @@ watchdog-probe: ## Run the personalised-pricing probe (low frequency; see config
 watchdog-report: ## Surge + sell-out + rail comparison report (computed on demand, logged only)
 	$(UV) run python -m apix_scheduler.watchdog_run report
 
-BACKTEST_WINDOW_DAYS ?= 90
+BACKTEST_WINDOW_DAILY_INDEX_DAYS ?= 60
+
+daily-index-run: ## Publish the DAILY series (APIX.ALL.D + breakdowns) over a window. Usage: make daily-index-run DATE=2026-09-27 [DAILY_INDEX_DAYS=60]
+	$(UV) run python -m apix_scheduler.daily_index_run --date $(DATE) --days $(DAILY_INDEX_DAYS)
+
+DAYS ?= 90
 
 backtest: ## Regenerate docs/backtest.md from real index_value vs dgca_fare_reference. Usage: make backtest [BACKTEST_WINDOW_DAYS=90]
 	$(UV) run python docs/generate_backtest_report.py --window-days $(BACKTEST_WINDOW_DAYS)
@@ -114,11 +124,22 @@ backtest: ## Regenerate docs/backtest.md from real index_value vs dgca_fare_refe
 load-atf: ## Load an ATF price extract. Usage: make load-atf FILE=db/seeds/atf/2026-09.csv NOTE="IOCL notification, 2026-09-01, <url>"
 	$(UV) run python -m apix_scheduler.atf_loader $(FILE) --source-note "$(NOTE)"
 
+fetch-cpi: ## Fetch the CPI air-fare item index from eSankhyiki (needs cpi_mospi's ToS review recorded). Usage: make fetch-cpi [YEARS=2025,2026]
+	$(UV) run python -m apix_scheduler.esankhyiki_fetch --out db/seeds/cpi/cpi_airfare.csv --years $(or $(YEARS),$(shell date +%Y))
+
 load-cpi: ## Load a CPI air-fare index extract. Usage: make load-cpi FILE=db/seeds/cpi/2026-07.csv NOTE="MoSPI release, July 2026, <url>"
 	$(UV) run python -m apix_scheduler.cpi_loader $(FILE) --source-note "$(NOTE)"
 
 load-dgca-fares: ## Load a DGCA/cited-benchmark average-fare extract. Usage: make load-dgca-fares FILE=db/seeds/dgca_fares/2026-07.csv NOTE="<citation>"
 	$(UV) run python -m apix_scheduler.dgca_fare_loader $(FILE) --source-note "$(NOTE)"
+
+# ------------------------------------------------------------- static demo ----
+
+demo-snapshot: ## Record API responses for the static demo (API running on :8000). Usage: make demo-snapshot [KEY=<researcher key>]
+	cd apps/web && node scripts/harvest-snapshot.mjs --api http://localhost:8000 $(if $(KEY),--key $(KEY),)
+
+demo-build: ## Build the static demo into apps/web/dist-demo (deployable to any static host)
+	cd apps/web && npm run build:demo
 
 clean: ## Remove build and test artefacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache coverage.xml .coverage htmlcov

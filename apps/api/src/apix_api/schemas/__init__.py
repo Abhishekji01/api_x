@@ -565,3 +565,121 @@ class SdmxMessage(BaseModel):
 
     meta: dict[str, Any]
     data: dict[str, Any]
+
+
+# ----------------------------------------------------------------- validation ----
+
+
+class SeriesPoint(BaseModel):
+    """One period of a comparison series, on its own unit and as an index."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    period: date
+    value: float = Field(description="The series in its own unit (index points, or INR).")
+    index_value: float = Field(
+        description="The same series rebased to 100 at the first period of the comparison."
+    )
+
+
+class ValidationScore(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    n_periods: int = Field(ge=0)
+    period_from: date | None
+    period_to: date | None
+    correlation: float | None = Field(description="Pearson correlation of the two index series.")
+    mape: float | None = Field(description="Mean absolute percentage error, index vs index.")
+    directional_accuracy: float | None = Field(
+        description="Share of period-to-period moves where both series moved the same way (%)."
+    )
+    note: str
+
+
+class Benchmark(BaseModel):
+    """A series APIx is checked against, and how well it agrees."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    code: Literal["CPI_AIRFARE", "DGCA_AVG_FARE", "UNIT_VALUE"]
+    label: str
+    source: str
+    frequency: Literal["D", "M"]
+    unit: str
+    status: Literal["LOADED", "NOT_LOADED", "COMPUTED"]
+    points: list[SeriesPoint]
+    score: ValidationScore | None
+    note: str
+    how_to_load: str | None = Field(
+        default=None, description="The command that loads this benchmark, when it is missing."
+    )
+
+
+class ValidationResponse(BaseModel):
+    """APIx against every available benchmark — the problem statement's back-test.
+
+    ``data_origin`` says what the APIx series itself was computed from. A score against a
+    benchmark is only meaningful when ``data_origin`` is ``COLLECTED``; for a
+    ``SYNTHETIC`` series the page demonstrates the harness, not a finding.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    series: str
+    data_origin: Literal["COLLECTED", "SYNTHETIC", "MIXED", "NONE"]
+    apix_daily: list[SeriesPoint]
+    apix_monthly: list[SeriesPoint]
+    benchmarks: list[Benchmark]
+    min_periods_for_score: int
+    meta: ResponseMeta
+
+
+# ------------------------------------------------------------------- pipeline ----
+
+
+class PipelineSource(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: str
+    display_name: str
+    domain: str
+    source_type: str
+    enabled: bool
+    tos_verdict: str | None
+    tos_reviewed_at: date | None
+    legal_basis: str | None
+    robots_url: str | None
+    crawl_delay_s: float | None
+    max_requests_per_hour: int | None
+    last_run_at: str | None
+    last_run_status: str | None
+    quotes_total: int = Field(ge=0)
+    blocked_total: int = Field(ge=0)
+
+
+class PipelineStage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    key: Literal["collected", "window", "clean", "outliers", "imputed", "indexed"]
+    label: str
+    count: int = Field(ge=0)
+    note: str
+
+
+class PipelineResponse(BaseModel):
+    """Collection and cleaning, end to end, with the compliance position of every source."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    data_origin: Literal["COLLECTED", "SYNTHETIC", "MIXED", "NONE"]
+    first_query_date: date | None
+    last_query_date: date | None
+    days_collected: int = Field(ge=0)
+    routes_in_basket: int
+    advance_windows: list[str]
+    sweep_times_local: list[str]
+    stages: list[PipelineStage]
+    sources: list[PipelineSource]
+    policy_decisions: dict[str, int]
+    safeguards: list[str]
+    meta: ResponseMeta

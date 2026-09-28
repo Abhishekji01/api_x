@@ -1,159 +1,114 @@
 /**
- * Screen 3 — Sector heatmap.
- *
- * Routes x dates, coloured by deviation from each route's own baseline (its mean over
- * the returned window). Diverging scale centred on zero, so a route's own volatility is
- * visible independent of its price level relative to other routes.
+ * Sector heatmap — every basket route by day, coloured by that day's deviation from the
+ * route's own average over the window. Rows are ordered by DGCA passenger traffic.
  */
 
-import { useMemo } from "react";
-import { useHeatmap } from "../api/hooks";
+import { useMemo, useState } from "react";
+import { DAILY_HEADLINE } from "../api/client";
+import { useBasket, useHeatmapDaily, useIndexSeries } from "../api/hooks";
 import { ChartPanel } from "../components/ChartPanel";
-import { EChart } from "../components/EChart";
 import { HeatmapArt } from "../components/illustrations";
 import { PageHeader } from "../components/PageHeader";
-import { formatPeriod } from "../lib/format";
-import { useTheme } from "../theme/ThemeContext";
-import { baseOption, chartText, divergingRamp, gridDefaults, tooltipDefaults } from "../theme/echartsTheme";
+import { RouteDayHeatmap, buildHeatmapModel } from "../components/RouteDayHeatmap";
+import { formatDate, formatIndex } from "../lib/format";
+
+const WINDOWS = [
+  { label: "14 days", days: 14 },
+  { label: "30 days", days: 30 },
+  { label: "60 days", days: 60 },
+] as const;
 
 export default function SectorHeatmap() {
-  const { tokens } = useTheme();
-  const heatmap = useHeatmap();
+  const basket = useBasket();
+  const headline = useIndexSeries(DAILY_HEADLINE, "D");
+  const [span, setSpan] = useState<(typeof WINDOWS)[number]>(WINDOWS[1]);
+  const [limit, setLimit] = useState<25 | 50>(25);
 
-  const derived = useMemo(() => {
-    if (heatmap.data === undefined) return null;
-    const routes = [...new Set(heatmap.data.items.map((c) => c.route_code))];
-    const periods = [...new Set(heatmap.data.items.map((c) => c.period))].sort();
-    const baselineByRoute = new Map<string, number>();
-    for (const route of routes) {
-      const values = heatmap.data.items.filter((c) => c.route_code === route).map((c) => c.value);
-      baselineByRoute.set(route, values.reduce((a, b) => a + b, 0) / values.length);
-    }
-    const cells = heatmap.data.items.map((c) => {
-      const baseline = baselineByRoute.get(c.route_code) ?? c.value;
-      return {
-        route: c.route_code,
-        period: c.period,
-        deviationPct: ((c.value - baseline) / baseline) * 100,
-        value: c.value,
-        n_quotes: c.n_quotes,
-      };
-    });
-    const maxAbsDeviation = Math.max(1, ...cells.map((c) => Math.abs(c.deviationPct)));
-    return { routes, periods, cells, maxAbsDeviation };
-  }, [heatmap.data]);
+  const firstDay = headline.data?.items[0]?.period;
+  const heatmap = useHeatmapDaily(firstDay);
 
-  const option = useMemo(() => {
-    if (derived === null) return null;
-    const { routes, periods, cells, maxAbsDeviation } = derived;
-    const points = cells.map((c) => [
-      periods.indexOf(c.period),
-      routes.indexOf(c.route),
-      Math.round(c.deviationPct * 10) / 10,
-    ]);
-    return {
-      ...baseOption(tokens),
-      grid: { ...gridDefaults(), left: 100 },
-      tooltip: {
-        ...tooltipDefaults(tokens),
-        trigger: "item" as const,
-        formatter: (params: { data: [number, number, number] }) => {
-          const [pIdx, rIdx, dev] = params.data;
-          return `${routes[rIdx]}, ${formatPeriod(periods[pIdx] ?? "")}<br/>Deviation from baseline: ${dev >= 0 ? "+" : ""}${dev}%`;
-        },
-      },
-      xAxis: {
-        type: "category" as const,
-        data: periods.map(formatPeriod),
-        axisLine: { lineStyle: { color: tokens.axis } },
-        axisTick: { show: false },
-        axisLabel: chartText(tokens),
-        splitArea: { show: true },
-      },
-      yAxis: {
-        type: "category" as const,
-        data: routes,
-        axisLine: { lineStyle: { color: tokens.axis } },
-        axisTick: { show: false },
-        axisLabel: chartText(tokens),
-        splitArea: { show: true },
-      },
-      visualMap: {
-        type: "continuous" as const,
-        min: -maxAbsDeviation,
-        max: maxAbsDeviation,
-        calculable: true,
-        orient: "horizontal" as const,
-        left: "center",
-        bottom: 0,
-        text: ["Above baseline", "Below baseline"],
-        textStyle: chartText(tokens),
-        inRange: { color: divergingRamp(tokens) },
-      },
-      series: [
-        {
-          type: "heatmap" as const,
-          data: points,
-          itemStyle: { borderColor: tokens.surface, borderWidth: 2 },
-          emphasis: { itemStyle: { borderColor: tokens.inkPrimary, borderWidth: 1 } },
-        },
-      ],
-    };
-  }, [derived, tokens]);
+  const busiest = useMemo(
+    () =>
+      [...(basket.data?.routes ?? [])]
+        .sort((a, b) => (b.dgca_pax_share ?? 0) - (a.dgca_pax_share ?? 0))
+        .map((r) => r.code),
+    [basket.data],
+  );
 
-  const nav = useMemo(() => {
-    if (derived === null) return undefined;
-    return {
-      seriesCount: 1,
-      pointCount: () => derived.cells.length,
-      describe: (_s: number, d: number) => {
-        const c = derived.cells[d];
-        if (c === undefined) return "";
-        return `${c.route}, ${formatPeriod(c.period)}: ${c.deviationPct >= 0 ? "+" : ""}${c.deviationPct.toFixed(1)}% from baseline.`;
-      },
-    };
-  }, [derived]);
+  const model = useMemo(
+    () =>
+      heatmap.data === undefined
+        ? null
+        : buildHeatmapModel(heatmap.data, busiest.length > 0 ? busiest : undefined, limit, span.days),
+    [heatmap.data, busiest, limit, span],
+  );
 
   const table = useMemo(() => {
-    if (derived === null) return undefined;
+    if (model === null) return undefined;
     return {
-      caption: "Route deviation from its own baseline, by period",
-      columns: ["Route", "Period", "Index value", "Deviation from baseline", "Quotes"],
-      rows: derived.cells.map((c) => [
+      caption: "Route index by day, and its deviation from the route's own average",
+      columns: ["Route", "Date", "Route index", "vs route average", "Quotes"],
+      rows: model.cells.map((c) => [
         c.route,
-        formatPeriod(c.period),
-        c.value.toFixed(1),
+        formatDate(c.day),
+        formatIndex(c.value),
         `${c.deviationPct >= 0 ? "+" : ""}${c.deviationPct.toFixed(1)}%`,
-        c.n_quotes.toLocaleString("en-IN"),
+        c.nQuotes.toLocaleString("en-IN"),
       ]),
     };
-  }, [derived]);
+  }, [model]);
+
+  const toggle = (active: boolean) =>
+    `rounded px-2.5 py-1 text-xs font-semibold transition-colors ${
+      active ? "bg-accent-soft text-accent-ink" : "text-ink-2 hover:text-ink"
+    }`;
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Sector heatmap"
-        subtitle="Routes by period, coloured by deviation from each route's own baseline — its own volatility, independent of its price level relative to other routes."
+        subtitle="Which city-pairs were dear or cheap, day by day. Each cell compares a route with its own average over the window, so a trunk route and a regional one are read on the same scale."
         art={<HeatmapArt />}
       />
-
       <ChartPanel
-        title="Sector heatmap"
-        subtitle="Each route's colour is relative to its own baseline, not to other routes."
-        isLoading={heatmap.isLoading}
+        title={`Routes by day · ${model?.routes.length ?? "…"} busiest city-pairs`}
+        subtitle="Ordered by DGCA passenger traffic. Red: dearer than the route's average; blue: cheaper."
+        isLoading={heatmap.isLoading || headline.isLoading}
         error={heatmap.error}
-        isEmpty={derived?.cells.length === 0}
-        dataStatus={heatmap.data?.meta.data_status}
+        isEmpty={model?.cells.length === 0}
         table={table}
+        toolbar={
+          <div className="flex flex-wrap gap-2">
+            <div className="flex rounded-md border border-edge p-0.5" role="group" aria-label="Window">
+              {WINDOWS.map((w) => (
+                <button
+                  key={w.label}
+                  type="button"
+                  aria-pressed={span.label === w.label}
+                  onClick={() => setSpan(w)}
+                  className={toggle(span.label === w.label)}
+                >
+                  {w.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex rounded-md border border-edge p-0.5" role="group" aria-label="Routes">
+              {([25, 50] as const).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-pressed={limit === n}
+                  onClick={() => setLimit(n)}
+                  className={toggle(limit === n)}
+                >
+                  {n === 50 ? "All 50" : "Top 25"}
+                </button>
+              ))}
+            </div>
+          </div>
+        }
       >
-        {option !== null && (
-          <EChart
-            option={option}
-            height={420}
-            ariaLabel="Heatmap of routes by period, coloured by deviation from each route's own baseline fare"
-            nav={nav}
-          />
-        )}
+        {model !== null && <RouteDayHeatmap model={model} />}
       </ChartPanel>
     </div>
   );

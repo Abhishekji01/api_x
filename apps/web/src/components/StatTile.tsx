@@ -19,7 +19,7 @@ export function StatTile({ label, value, delta, icon, index = 0 }: StatTileProps
 
   return (
     <div
-      className="reveal card-hover flex flex-col gap-3 rounded-2xl border border-edge bg-surface p-5 shadow-card"
+      className="reveal card-hover flex flex-col gap-3 rounded-xl border border-edge bg-surface p-5 shadow-card"
       style={revealStyle(index)}
     >
       <div className="flex items-start justify-between gap-2">
@@ -30,7 +30,7 @@ export function StatTile({ label, value, delta, icon, index = 0 }: StatTileProps
           </span>
         )}
       </div>
-      <p className="font-mono text-3xl font-semibold tabular-nums text-ink">{displayValue}</p>
+      <p className="tnum text-3xl font-semibold tabular-nums text-ink">{displayValue}</p>
       {delta !== undefined && (
         <p className="text-sm">
           {delta.pct === null ? (

@@ -37,6 +37,8 @@ PUBLIC_ENDPOINTS = [
     f"/v1/index/revisions?series={ROUTE_SERIES}",
     "/v1/routes/DEL-BOM/series?advance_days=3&carrier=6E",
     "/v1/leadtime/DEL-BOM?carrier=AI",
+    "/v1/validation",
+    "/v1/pipeline",
 ]
 
 # Microdata / draft-adjacent endpoints: require a researcher key.

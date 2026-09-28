@@ -55,3 +55,39 @@ export function SourceStatusBadge({ status }: { status: string }) {
     </span>
   );
 }
+
+/** What the numbers on screen were computed from — shown in the masthead on every page. */
+export function DataOriginBadge({ origin }: { origin: string }) {
+  const map: Record<string, { label: string; style: string; title: string }> = {
+    SYNTHETIC: {
+      label: "Synthetic demo data",
+      style: "border-warning-ink/30 bg-warning-soft text-warning-ink",
+      title: "Every fare comes from APIx's labelled synthetic generator, not a live website.",
+    },
+    MIXED: {
+      label: "Partly synthetic data",
+      style: "border-warning-ink/30 bg-warning-soft text-warning-ink",
+      title: "Some fares come from the labelled synthetic generator.",
+    },
+    COLLECTED: {
+      label: "Collected data",
+      style: "border-good-ink/30 bg-good-soft text-good-ink",
+      title: "Every fare was collected from a reviewed source through the PolicyEngine.",
+    },
+    NONE: {
+      label: "No data yet",
+      style: "border-edge bg-raised text-ink-2",
+      title: "No fare has been collected or generated yet.",
+    },
+  };
+  const entry = map[origin] ?? map["NONE"]!;
+  return (
+    <span
+      title={entry.title}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${entry.style}`}
+    >
+      <span aria-hidden="true">{origin === "COLLECTED" ? "✓" : "◐"}</span>
+      {entry.label}
+    </span>
+  );
+}

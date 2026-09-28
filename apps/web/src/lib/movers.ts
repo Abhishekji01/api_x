@@ -15,7 +15,16 @@ export interface Mover {
   latestPeriod: string;
 }
 
-export function computeMovers(heatmap: HeatmapCell[] | undefined, limit = 4): Mover[] {
+/**
+ * ``lookback`` is how many periods back the comparison reaches: 1 for the monthly grid
+ * (this month vs last), 7 for the daily grid (today vs the same weekday a week ago —
+ * which also cancels the strong day-of-week pattern in airfares).
+ */
+export function computeMovers(
+  heatmap: HeatmapCell[] | undefined,
+  limit = 4,
+  lookback = 1,
+): Mover[] {
   if (heatmap === undefined) return [];
   const byRoute = new Map<string, HeatmapCell[]>();
   for (const cell of heatmap) {
@@ -27,7 +36,7 @@ export function computeMovers(heatmap: HeatmapCell[] | undefined, limit = 4): Mo
   for (const [routeCode, cells] of byRoute) {
     const sorted = [...cells].sort((a, b) => a.period.localeCompare(b.period));
     const latest = sorted.at(-1);
-    const previous = sorted.at(-2);
+    const previous = sorted.at(-1 - lookback);
     if (latest === undefined || previous === undefined) continue;
     movers.push({
       routeCode,

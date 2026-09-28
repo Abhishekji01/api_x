@@ -72,7 +72,7 @@ export function HeroIndexCard({ items, isLoading, error, preview }: HeroIndexCar
   }, [items]);
 
   return (
-    <div className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-edge bg-surface p-5 shadow-card sm:flex-row sm:items-center">
+    <div className="flex h-full flex-col justify-between gap-4 rounded-xl border border-edge bg-surface p-5 shadow-card sm:flex-row sm:items-center">
       <div className="min-w-0">
         <div className="flex items-center gap-2 text-sm font-medium text-ink-2">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-ink">
@@ -92,7 +92,7 @@ export function HeroIndexCard({ items, isLoading, error, preview }: HeroIndexCar
         )}
         {latest !== undefined && (
           <>
-            <p className="mt-1 font-mono text-4xl font-semibold tabular-nums text-ink">
+            <p className="mt-1 tnum text-4xl font-semibold tabular-nums text-ink">
               {formatIndex(latest.value)}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
@@ -135,7 +135,7 @@ export function HeroIndexCard({ items, isLoading, error, preview }: HeroIndexCar
                 ) : (
                   <p className="mt-2 text-sm text-ink">
                     Elementary price relative ({preview.formula}):{" "}
-                    <span className="font-mono font-semibold tabular-nums">
+                    <span className="tnum font-semibold tabular-nums">
                       {preview.value.toFixed(3)}
                     </span>{" "}
                     <span className="text-ink-2">
@@ -152,7 +152,7 @@ export function HeroIndexCard({ items, isLoading, error, preview }: HeroIndexCar
                   NO DATA — placeholder, not a statistic
                 </span>
                 <p className="mt-2 text-sm text-ink">
-                  <span className="font-mono font-semibold tabular-nums text-ink-2 line-through">100.0</span>{" "}
+                  <span className="tnum font-semibold tabular-nums text-ink-2 line-through">100.0</span>{" "}
                   <span className="text-ink-2">
                     shown only so this card renders something. No fare_quote rows exist yet for this
                     environment, so nothing has actually been computed — this is not a fare index value.

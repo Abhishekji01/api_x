@@ -27,7 +27,7 @@ from apix_api.pagination import (
     query_signature,
 )
 from apix_api.schemas import QuoteSummary
-from apix_core.models import FareQuote, FareQuoteClean, Route, Source
+from apix_core.models import DataSnapshot, FareQuote, FareQuoteClean, Route, Source
 
 router = APIRouter(
     prefix="/v1",
@@ -69,11 +69,25 @@ async def list_quotes(
     # source-agnostic row); resolve source_code through the raw quote it derives
     # from, when it derives from one at all — an imputed row has none.
     query_date_expr = FareQuoteClean.travel_date - FareQuoteClean.advance_days
+    # Every index run that reads a quote cleans it again under its own snapshot. List
+    # the most recent snapshot's treatment only, so each quote appears exactly once.
+    latest_snapshot = (
+        select(FareQuoteClean.snapshot_id)
+        .join(DataSnapshot, DataSnapshot.id == FareQuoteClean.snapshot_id)
+        .where(FareQuoteClean.route_id == route_id, query_date_expr == period)
+        .order_by(DataSnapshot.created_at.desc())
+        .limit(1)
+        .scalar_subquery()
+    )
     stmt = (
         select(FareQuoteClean, Source.code)
         .outerjoin(FareQuote, FareQuote.id == FareQuoteClean.quote_id)
         .outerjoin(Source, Source.id == FareQuote.source_id)
-        .where(FareQuoteClean.route_id == route_id, query_date_expr == period)
+        .where(
+            FareQuoteClean.route_id == route_id,
+            query_date_expr == period,
+            FareQuoteClean.snapshot_id == latest_snapshot,
+        )
         .order_by(FareQuoteClean.id)
     )
     if not include_screened:

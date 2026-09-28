@@ -169,3 +169,73 @@ export function AuditArt(props: ArtProps) {
     </svg>
   );
 }
+
+/** The APIx mark: a rising index line through a rounded tile, in the brand navy. */
+export function ApixMark(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 40 40" aria-hidden="true" {...props}>
+      <rect width="40" height="40" rx="9" fill="#0d366b" />
+      <path
+        d="M8 27 L15 21 L21 24 L32 12"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="32" cy="12" r="3" fill="#86b6ef" />
+      <path d="M8 31 H32" stroke="#86b6ef" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+    </svg>
+  );
+}
+
+/** Validation — two index lines sharing one base, with the gap between them shaded. */
+export function ValidationArt(props: ArtProps) {
+  const { tokens } = useTheme();
+  return (
+    <svg {...frame} {...props}>
+      <line x1={8} y1={40} x2={112} y2={40} stroke={tokens.axis} strokeWidth={1} strokeDasharray="3 3" />
+      <path
+        d="M8 40 C28 30 44 50 60 36 C76 22 92 34 112 24"
+        fill="none"
+        stroke={tokens.series[1]}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+      <path
+        d="M8 40 C28 34 44 46 60 40 C76 32 92 38 112 32"
+        fill="none"
+        stroke={tokens.series[0]}
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/** Pipeline — quotes narrowing through collection, cleaning and indexing. */
+export function PipelineArt(props: ArtProps) {
+  const { tokens } = useTheme();
+  const bars = [
+    { x: 8, h: 56 },
+    { x: 34, h: 46 },
+    { x: 60, h: 40 },
+    { x: 86, h: 30 },
+  ];
+  return (
+    <svg {...frame} {...props}>
+      {bars.map((b, i) => (
+        <rect
+          key={b.x}
+          x={b.x}
+          y={68 - b.h}
+          width={22}
+          height={b.h}
+          rx={4}
+          fill={tokens.sequential[Math.min(6, 2 + i)]}
+        />
+      ))}
+      <line x1={4} y1={68} x2={116} y2={68} stroke={tokens.axis} strokeWidth={1} />
+    </svg>
+  );
+}

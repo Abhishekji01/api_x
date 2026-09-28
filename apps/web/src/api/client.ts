@@ -7,6 +7,7 @@
  */
 
 import createClient from "openapi-fetch";
+import { STATIC_DEMO, installStaticFetch } from "../lib/staticDemo";
 import type { components, paths } from "./schema";
 
 export type Schemas = components["schemas"];
@@ -32,13 +33,40 @@ export type RevisionEntry = Schemas["RevisionEntry"];
 export type NowcastPoint = Schemas["NowcastPoint"];
 export type DecompositionResponse = Schemas["DecompositionResponse"];
 export type ResponseMeta = Schemas["ResponseMeta"];
+export type ValidationResponse = Schemas["ValidationResponse"];
+export type Benchmark = Schemas["Benchmark"];
+export type SeriesPoint = Schemas["SeriesPoint"];
+export type ValidationScore = Schemas["ValidationScore"];
+export type PipelineResponse = Schemas["PipelineResponse"];
+export type PipelineSource = Schemas["PipelineSource"];
 
 /** The headline series code and the official CPI comparison series it is drawn against. */
 export const HEADLINE_SERIES = "APIX.ALL.M";
 export const CPI_SERIES = "CPI.TRANSPORT.AIRFARE.M";
+/** The daily headline — what the problem statement asks the dashboard to show. */
+export const DAILY_HEADLINE = "APIX.ALL.D";
 
-export const BASE_URL: string =
-  (import.meta.env.VITE_APIX_API_URL as string | undefined) ?? "http://localhost:8000";
+declare global {
+  interface Window {
+    /** Optional runtime override, from /config.js (see infra/docker/web.Dockerfile). */
+    __APIX_CONFIG__?: { apiUrl?: string };
+  }
+}
+
+/** A virtual origin the static-demo transport answers for (lib/staticDemo.ts). */
+const STATIC_API_BASE = `${window.location.origin}/__apix_snapshot_api`;
+
+/**
+ * Where the API lives, in order: static-demo snapshot; a runtime /config.js override;
+ * the build-time VITE_APIX_API_URL; local development.
+ */
+export const BASE_URL: string = STATIC_DEMO
+  ? STATIC_API_BASE
+  : (window.__APIX_CONFIG__?.apiUrl ??
+    (import.meta.env.VITE_APIX_API_URL as string | undefined) ??
+    "http://localhost:8000");
+
+if (STATIC_DEMO) installStaticFetch(BASE_URL);
 
 /** An RFC 9457 problem document, thrown for any non-2xx response. */
 export class ApiProblem extends Error {

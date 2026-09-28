@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React, { Suspense, lazy } from "react";
 import ReactDOM from "react-dom/client";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter, createHashRouter } from "react-router-dom";
+import type { RouteObject } from "react-router-dom";
+import { STATIC_DEMO } from "./lib/staticDemo";
 import App from "./App";
 import { ThemeProvider } from "./theme/ThemeContext";
 import "./index.css";
@@ -16,9 +18,11 @@ const DataExplorerScreen = lazy(() => import("./screens/DataExplorerScreen"));
 const ApiAccessScreen = lazy(() => import("./screens/ApiAccessScreen"));
 const MethodConsole = lazy(() => import("./screens/MethodConsole"));
 const Audit = lazy(() => import("./screens/Audit"));
+const Validation = lazy(() => import("./screens/Validation"));
+const Pipeline = lazy(() => import("./screens/Pipeline"));
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
+  defaultOptions: { queries: { staleTime: 60_000, retry: 1, refetchOnWindowFocus: false } },
 });
 
 const withSuspense = (element: React.ReactNode) => (
@@ -33,7 +37,7 @@ const withSuspense = (element: React.ReactNode) => (
   </Suspense>
 );
 
-const router = createBrowserRouter([
+const routes: RouteObject[] = [
   {
     path: "/",
     element: <App />,
@@ -46,13 +50,19 @@ const router = createBrowserRouter([
       { path: "api-access", element: withSuspense(<ApiAccessScreen />) },
       { path: "reports", element: withSuspense(<MethodConsole />) },
       { path: "settings", element: withSuspense(<Audit />) },
-      // Legacy route aliases
       { path: "heatmap", element: withSuspense(<SectorHeatmap />) },
+      { path: "validation", element: withSuspense(<Validation />) },
+      { path: "pipeline", element: withSuspense(<Pipeline />) },
+      // Legacy route aliases
       { path: "method", element: withSuspense(<MethodConsole />) },
       { path: "audit", element: withSuspense(<Audit />) },
     ],
   },
-]);
+];
+
+// The static demo uses hash routing, so it runs from any static host or folder with no
+// server-side rewrite rules; the live build keeps clean paths.
+const router = STATIC_DEMO ? createHashRouter(routes) : createBrowserRouter(routes);
 
 const root = document.getElementById("root");
 if (!root) {

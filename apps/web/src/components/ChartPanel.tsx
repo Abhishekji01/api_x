@@ -61,16 +61,30 @@ export function ChartPanel({
     );
   } else if (error !== undefined && error !== null) {
     const problem = error instanceof ApiProblem ? error : null;
-    body = (
-      <div role="alert" className="rounded-xl border border-critical-ink/30 bg-critical-soft p-4 text-sm">
-        <p className="font-medium text-critical-ink">
-          {problem !== null ? problem.title : "Request failed"}
-        </p>
-        <p className="mt-1 text-ink-2">
-          {problem?.detail ?? (error instanceof Error ? error.message : String(error))}
-        </p>
-      </div>
-    );
+    const restricted = problem !== null && (problem.status === 401 || problem.status === 403);
+    const unavailable = problem !== null && (problem.status === 503 || problem.status === 404);
+    body =
+      restricted || unavailable ? (
+        <div role="status" className="rounded-lg border border-edge bg-raised p-4 text-sm">
+          <p className="font-semibold text-ink">
+            {restricted ? "Restricted to researchers and officials" : problem.title}
+          </p>
+          <p className="mt-1 text-ink-2">
+            {restricted
+              ? "This view exposes individual fare quotes or draft, unpublished figures, so the API asks for a researcher or official key (X-API-Key header). Every published index figure on the other pages is open to all."
+              : problem.detail}
+          </p>
+        </div>
+      ) : (
+        <div role="alert" className="rounded-xl border border-critical-ink/30 bg-critical-soft p-4 text-sm">
+          <p className="font-medium text-critical-ink">
+            {problem !== null ? problem.title : "Request failed"}
+          </p>
+          <p className="mt-1 text-ink-2">
+            {problem?.detail ?? (error instanceof Error ? error.message : String(error))}
+          </p>
+        </div>
+      );
   } else if (isEmpty) {
     body = (
       <div className="flex h-48 flex-col items-center justify-center gap-2 text-sm">
@@ -102,7 +116,7 @@ export function ChartPanel({
   return (
     <section
       aria-labelledby={headingId}
-      className="rounded-2xl border border-edge bg-surface p-5 shadow-card"
+      className="rounded-xl border border-edge bg-surface p-5 shadow-card"
     >
       <header className="mb-4 flex flex-wrap items-start justify-between gap-2">
         <div>

@@ -1,14 +1,9 @@
 /**
- * Theme state — dark only, and fixed, not OS-driven. The dashboard was reskinned to a
- * dark "statistical monitoring terminal" look (index.css / theme/tokens.ts's DARK
- * export); this file hard-codes that choice by always stamping
- * `data-theme="dark"` itself, exactly the way this codebase previously hard-coded
- * light: an earlier version *followed* `prefers-color-scheme`, which flipped every
- * `bg-surface` panel to near-black for anyone on a dark OS theme whether or not the
- * light design was ready for it. The fix here is the same shape, just the other
- * direction — an explicit, reviewed value the app sets on itself, never a media query
- * silently deciding for it. Re-introduce preference switching only alongside a real,
- * user-facing toggle that sets this deliberately.
+ * Theme state — light only, and fixed, not OS-driven. The dashboard uses a light,
+ * official-statistics design (index.css / theme/tokens.ts's LIGHT export) and stamps
+ * `data-theme="light"` itself: an earlier version *followed* `prefers-color-scheme`,
+ * which flipped panels for anyone on a dark OS theme whether or not that design was
+ * ready. Re-introduce preference switching only alongside a real, user-facing toggle.
  */
 
 import { createContext, useContext, useEffect, useMemo } from "react";
@@ -27,7 +22,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const MODE: ThemeMode = "dark";
+const MODE: ThemeMode = "light";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {

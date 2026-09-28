@@ -57,15 +57,15 @@ const STATUS = {
 
 export const LIGHT: ThemeTokens = {
   mode: "light",
-  page: "#eef2f8",
+  page: "#f3f5f8",
   surface: "#ffffff",
   surfaceRaised: "#ffffff",
-  inkPrimary: "#0b0b0b",
-  inkSecondary: "#52514e",
-  inkMuted: "#898781",
-  grid: "#e1e0d9",
-  axis: "#c3c2b7",
-  border: "rgba(11,11,11,0.10)",
+  inkPrimary: "#0f1728",
+  inkSecondary: "#4a5565",
+  inkMuted: "#6b7280",
+  grid: "#e6e8ec",
+  axis: "#c9cdd4",
+  border: "rgba(15,23,40,0.10)",
   series: [
     "#2a78d6",
     "#eb6834",

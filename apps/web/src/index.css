@@ -2,50 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme tokens — mirrors src/theme/tokens.ts's DARK export. This is now a fixed,
-   deliberate dark "statistical monitoring terminal" design (matching the reference
-   this build was reskinned against), not the OS dark-mode preference — the previous
-   incident here was an *automatic*, unreviewed light->dark flip driven by
-   prefers-color-scheme; this is a hand-tuned, explicitly-set `data-theme="dark"` the
-   app always sets itself (see theme/ThemeContext.tsx). If a light mode is ever
-   reintroduced, it must be an explicit opt-in the user picks, never a media query. */
+/* Theme tokens — mirrors src/theme/tokens.ts's LIGHT export.
+
+   A light, official-statistics look (the register of a national statistics office's
+   data portal): white panels on a cool grey page, a deep-navy brand bar, one blue
+   accent, and status inks reserved for status. Set explicitly by
+   theme/ThemeContext.tsx — never switched by a media query behind the user's back. */
 :root {
-  color-scheme: dark;
-  --page: #080b12;
-  --surface: #0d121c;
-  --surface-raised: #111827;
-  --ink: #e7ecf5;
-  --ink-secondary: #8a94a6;
-  --ink-muted: #5b6472;
-  --grid: #1b2331;
-  --axis: #263041;
-  --border: rgba(148, 163, 184, 0.14);
-  --accent: #3ee6b4;
-  --accent-ink: #3ee6b4;
-  --status-good-ink: #3ee6b4;
-  --status-warning-ink: #eda100;
-  --status-serious-ink: #eb6834;
-  --status-critical-ink: #ff5c72;
-  --focus-ring: #3ee6b4;
+  color-scheme: light;
+  --page: #f3f5f8;
+  --surface: #ffffff;
+  --surface-raised: #f7f8fa;
+  --ink: #0f1728;
+  --ink-secondary: #4a5565;
+  --ink-muted: #6b7280;
+  --grid: #e6e8ec;
+  --axis: #c9cdd4;
+  --border: rgba(15, 23, 40, 0.1);
+  --accent: #1c5cab;
+  --accent-ink: #1c5cab;
+  --status-good-ink: #006300;
+  --status-warning-ink: #8a5300;
+  --status-serious-ink: #b3471b;
+  --status-critical-ink: #b42323;
+  --focus-ring: #1c5cab;
 
-  --accent-soft: rgba(62, 230, 180, 0.12);
-  --good-soft: rgba(62, 230, 180, 0.12);
-  --warning-soft: rgba(237, 161, 0, 0.14);
-  --serious-soft: rgba(235, 104, 52, 0.14);
-  --critical-soft: rgba(255, 92, 114, 0.14);
-  --table-stripe: rgba(148, 163, 184, 0.05);
+  --accent-soft: #e9f1fc;
+  --good-soft: #e7f4e7;
+  --warning-soft: #fdf3dd;
+  --serious-soft: #fcebe3;
+  --critical-soft: #fbe9e9;
+  --table-stripe: #f8f9fb;
 
-  /* Shell chrome — top bar, ticker, tab strip. Slightly darker than --surface so
-     panels read as "raised" off the shell rather than blending into it. */
-  --navy: #05070d;
-  --navy-2: #0a0f18;
-  --on-navy: #e7ecf5;
-  --on-navy-muted: rgba(231, 236, 245, 0.6);
-  --sidebar-bg: #05070d;
-  --sidebar-active-bg: rgba(62, 230, 180, 0.12);
-  --sidebar-active-ink: #3ee6b4;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.5);
-  --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 32px -14px rgba(0, 0, 0, 0.6);
+  /* Brand bar. */
+  --navy: #0d366b;
+  --navy-2: #0a2b57;
+  --on-navy: #ffffff;
+  --on-navy-muted: rgba(255, 255, 255, 0.74);
+  --sidebar-bg: #ffffff;
+  --sidebar-active-bg: #e9f1fc;
+  --sidebar-active-ink: #1c5cab;
+  --shadow-card: 0 1px 2px rgba(15, 23, 40, 0.04), 0 1px 3px rgba(15, 23, 40, 0.04);
+  --shadow-card-hover: 0 2px 4px rgba(15, 23, 40, 0.06), 0 8px 20px -8px rgba(15, 23, 40, 0.12);
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -54,8 +52,6 @@ body {
   background: var(--page);
   color: var(--ink);
   font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  background-image: radial-gradient(ellipse 1200px 600px at 50% -10%, rgba(62, 230, 180, 0.05), transparent);
-  background-attachment: fixed;
 }
 
 /* One visible, consistent focus indicator everywhere. */
@@ -109,7 +105,7 @@ body {
 .card-hover:hover {
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-1px);
-  border-color: rgba(148, 163, 184, 0.28);
+  border-color: rgba(15, 23, 40, 0.16);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -121,11 +117,16 @@ body {
   }
 }
 
-/* Terminal-style tracked label — nav items, section eyebrows, ticker deltas. */
+/* Small tracked label — section eyebrows, table heads, badges. */
 .mono-label {
-  font-family: var(--font-mono);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+/* Tabular figures wherever numbers must line up. */
+.tnum {
+  font-variant-numeric: tabular-nums;
 }
 
 /* The scrolling route ticker in the shell header. Duplicated content + a 50%
@@ -161,10 +162,10 @@ body {
 @keyframes live-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(62, 230, 180, 0.55);
+    box-shadow: 0 0 0 0 rgba(12, 163, 12, 0.45);
   }
   70% {
-    box-shadow: 0 0 0 6px rgba(62, 230, 180, 0);
+    box-shadow: 0 0 0 6px rgba(12, 163, 12, 0);
   }
 }
 

@@ -1,0 +1,15 @@
+# Netlify: deploys the static demo of the APIx dashboard (no backend needed).
+# The demo reads a recorded snapshot of API responses (apps/web/demo-snapshot/) and
+# uses hash routing, so no redirect rules are required.
+[build]
+  base = "apps/web"
+  command = "npm ci && npm run build:demo"
+  publish = "dist-demo"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[headers]]
+  for = "/snapshot/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"

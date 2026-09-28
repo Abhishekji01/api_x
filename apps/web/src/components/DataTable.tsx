@@ -26,7 +26,7 @@ export function DataTable({ spec }: { spec: TableSpec }) {
           {spec.rows.map((row, rowIndex) => (
             <tr key={rowIndex} className="border-b border-grid last:border-0 even:bg-stripe">
               {row.map((cell, cellIndex) => (
-                <td key={cellIndex} className="px-3 py-2 font-mono text-ink">
+                <td key={cellIndex} className="px-3 py-2 tnum text-ink">
                   {cell}
                 </td>
               ))}

@@ -28,7 +28,7 @@ export function ApiAccessCard({ onViewDocs }: ApiAccessCardProps) {
   };
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-2xl border border-edge bg-surface p-5 shadow-card card-hover">
+    <div className="flex h-full flex-col justify-between rounded-xl border border-edge bg-surface p-5 shadow-card card-hover">
       {/* Top Header */}
       <div>
         <div className="flex items-start gap-2.5">
@@ -47,7 +47,7 @@ export function ApiAccessCard({ onViewDocs }: ApiAccessCardProps) {
             target="_blank"
             rel="noreferrer"
             onClick={onViewDocs}
-            className="block w-full rounded-xl bg-accent px-3 py-2 text-center text-xs font-semibold text-navy shadow-sm transition-colors hover:brightness-110"
+            className="block w-full rounded-xl bg-accent px-3 py-2 text-center text-xs font-semibold text-white shadow-sm transition-colors hover:brightness-110"
           >
             View API Documentation
           </a>

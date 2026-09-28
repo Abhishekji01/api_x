@@ -15,7 +15,7 @@ const CSV_URL = `${BASE_URL}/v1/export.csv?series=${encodeURIComponent(HEADLINE_
 
 export function DataExplorerCard() {
   return (
-    <div className="flex h-full flex-col justify-between rounded-2xl border border-edge bg-surface p-5 shadow-card card-hover">
+    <div className="flex h-full flex-col justify-between rounded-xl border border-edge bg-surface p-5 shadow-card card-hover">
       <div>
         <div className="flex items-start gap-2.5">
           <div className="mt-0.5 text-accent-ink">
@@ -35,7 +35,7 @@ export function DataExplorerCard() {
       <div className="mt-4 flex flex-col gap-2 pt-2">
         <Link
           to="/explorer"
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-xs font-semibold text-navy shadow-sm transition-colors hover:brightness-110"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:brightness-110"
         >
           Open Data Explorer
         </Link>

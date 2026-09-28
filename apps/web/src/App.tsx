@@ -1,200 +1,173 @@
 /**
- * Dashboard shell — a statistical monitoring terminal, not a marketing page: a dense
- * top bar (brand, live-feed state, export), a scrolling route ticker built from real
- * `/v1/heatmap` deltas (never invented tick data), and a horizontal tab strip with
- * keyboard shortcuts 1-7 across the real seven screens this app actually has. No
- * "Alerts" tab is faked in — this build has no alerting feature, so none is implied.
+ * Dashboard shell — an official-statistics data portal: a slim context strip, a white
+ * masthead with the index's name and the honest state of the data behind it, a single
+ * row of section tabs (keyboard shortcuts 1-9), and a footer.
+ *
+ * The data-origin badge and banner come from `/v1/pipeline` — when every quote in the
+ * database is from the labelled synthetic generator, every page says so. Nothing in the
+ * chrome is decorative "live" theatre: no invented latency, no pulsing LIVE badge.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useHeatmap } from "./api/hooks";
-import {
-  IconAudit,
-  IconClock,
-  IconDatabase,
-  IconDashboard,
-  IconDocument,
-  IconDownload,
-  IconRoute,
-  IconSliders,
-} from "./components/icons";
-import { InstitutionalBadge } from "./components/InstitutionalBadge";
-import { computeMovers } from "./lib/movers";
-import { formatIndex } from "./lib/format";
+import { BASE_URL } from "./api/client";
+import { usePipeline } from "./api/hooks";
+import { DataOriginBadge } from "./components/badges";
+import { ApixMark } from "./components/illustrations";
+import { STATIC_DEMO } from "./lib/staticDemo";
 
 const SCREENS = [
-  { to: "/", label: "Overview", icon: IconDashboard, key: "1" },
-  { to: "/airfare-index", label: "Airfare Index", icon: IconSliders, key: "2" },
-  { to: "/routes", label: "Route Explorer", icon: IconRoute, key: "3" },
-  { to: "/leadtime", label: "Lead Time", icon: IconClock, key: "4" },
-  { to: "/explorer", label: "Data Explorer", icon: IconDatabase, key: "5" },
-  { to: "/reports", label: "Method Console", icon: IconDocument, key: "6" },
-  { to: "/settings", label: "Audit Trail", icon: IconAudit, key: "7" },
-];
-
-/** A tiny fake-but-honest latency readout: how long the last render tick actually
- * took, not a manufactured "10ms" — measured in the browser via requestAnimationFrame,
- * relabelled here so the terminal chrome has something live to show without lying
- * about talking to a server on every frame. */
-function useFrameLatency(): number {
-  const [ms, setMs] = useState(0);
-  useEffect(() => {
-    let raf = 0;
-    let last = performance.now();
-    const tick = (now: number) => {
-      setMs(Math.round(now - last));
-      last = now;
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  return ms;
-}
+  { to: "/", label: "Overview", key: "1" },
+  { to: "/airfare-index", label: "Daily index", key: "2" },
+  { to: "/heatmap", label: "Sector heatmap", key: "3" },
+  { to: "/routes", label: "Routes", key: "4" },
+  { to: "/leadtime", label: "Lead time", key: "5" },
+  { to: "/validation", label: "Validation", key: "6" },
+  { to: "/pipeline", label: "Pipeline & ethics", key: "7" },
+  { to: "/explorer", label: "Data", key: "8" },
+  { to: "/reports", label: "Methodology", key: "9" },
+  { to: "/settings", label: "Audit trail", key: "" },
+  { to: "/api-access", label: "API", key: "" },
+] as const;
 
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
-  const heatmap = useHeatmap();
-  const latency = useFrameLatency();
-
-  const tickerItems = useMemo(() => computeMovers(heatmap.data?.items, 24), [heatmap.data]);
+  const pipeline = usePipeline();
+  const origin = pipeline.data?.data_origin;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
       if (target !== null && ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName)) return;
-      const screen = SCREENS.find((s) => s.key === event.key);
+      const screen = SCREENS.find((s) => s.key !== "" && s.key === event.key);
       if (screen !== undefined) navigate(screen.to);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [navigate]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [location.pathname]);
+
   return (
-    <div className="min-h-screen bg-page text-ink antialiased">
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-edge bg-navy">
-        <div className="mx-auto flex w-full items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xl font-bold tracking-tight text-on-navy">API</span>
-              <span className="relative inline-flex items-center font-mono text-xl font-bold text-accent">
-                x
-              </span>
-            </div>
-            <div className="hidden border-l border-white/10 pl-4 leading-tight sm:block">
-              <p className="text-sm font-semibold text-on-navy">Airfare Price Index</p>
-              <p className="mono-label text-[10px] text-on-navy-muted">
-                National Statistical Monitoring Terminal
+    <div className="flex min-h-screen flex-col bg-page text-ink antialiased">
+      <a
+        href="#main"
+        className="visually-hidden focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2"
+      >
+        Skip to content
+      </a>
+
+      {/* Context strip */}
+      <div className="bg-navy text-on-navy-muted">
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-1.5 text-[11px] sm:px-6">
+          <span>
+            Prototype for the Ministry of Statistics &amp; Programme Implementation (MoSPI) ·
+            Smart India Hackathon 2026 · Problem statement 26056
+          </span>
+          <span className="hidden sm:inline">Team Vyom</span>
+        </div>
+      </div>
+
+      {/* Masthead */}
+      <header className="border-b border-edge bg-surface">
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <NavLink to="/" className="flex min-w-0 items-center gap-3">
+            <ApixMark className="h-10 w-10 shrink-0" />
+            <div className="min-w-0 leading-tight">
+              <p className="text-lg font-bold tracking-tight text-ink">
+                APIx <span className="font-medium text-ink-2">· Airfare Price Index for India</span>
+              </p>
+              <p className="text-xs text-ink-2">
+                A daily, route-level index of domestic airfares, built to augment the CPI
               </p>
             </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <InstitutionalBadge />
-            <span className="mono-label hidden items-center gap-1.5 rounded border border-edge px-2 py-1 text-[10px] text-ink-2 md:inline-flex">
-              latency: {latency}ms
-            </span>
-            <span className="mono-label inline-flex items-center gap-1.5 rounded border border-good-ink/30 bg-good-soft px-2 py-1 text-[10px] font-semibold text-good-ink">
-              <span className="live-dot h-1.5 w-1.5 rounded-full bg-good-ink" aria-hidden="true" />
-              Live
-            </span>
-            <a
-              href="/v1/export.csv?series=APIX.ALL.M"
-              className="mono-label hidden items-center gap-1.5 rounded border border-edge px-2.5 py-1 text-[10px] font-semibold text-ink-2 transition-colors hover:border-accent hover:text-accent-ink sm:inline-flex"
-            >
-              <IconDownload width={11} height={11} />
-              Export
-            </a>
+          </NavLink>
+          <div className="flex flex-wrap items-center gap-2">
+            {origin !== undefined && <DataOriginBadge origin={origin} />}
+            {!STATIC_DEMO && (
+              <a
+                href={`${BASE_URL}/docs`}
+                className="rounded-md border border-edge px-3 py-1.5 text-xs font-semibold text-ink-2 transition-colors hover:border-accent hover:text-accent-ink"
+              >
+                API docs
+              </a>
+            )}
           </div>
         </div>
 
-        {/* Route ticker — real deltas from /v1/heatmap, scrolling. */}
-        <div className="overflow-hidden border-t border-edge bg-navy-2 py-1.5">
-          {tickerItems.length > 0 && (
-            <div className="ticker-track flex w-max gap-8 whitespace-nowrap">
-              {[...tickerItems, ...tickerItems].map((item, i) => (
-                <span
-                  key={`${item.routeCode}-${i}`}
-                  className="mono-label flex items-center gap-1.5 text-[11px]"
-                >
-                  <span className="text-ink-2">{item.routeCode}</span>
-                  <span className="text-ink">{formatIndex(item.latestValue)}</span>
-                  {/* A rising fare index is bad for a cost-of-living measure, not
-                      "bullish" — critical/good are assigned the opposite of the usual
-                      stock-ticker convention, matching MoversPanel and RouteMap, which
-                      render this exact same computeMovers() data. */}
-                  <span
-                    className={item.momentumPct >= 0 ? "text-critical-ink" : "text-good-ink"}
-                  >
-                    {item.momentumPct >= 0 ? "▲" : "▼"} {item.momentumPct >= 0 ? "+" : ""}
-                    {item.momentumPct.toFixed(2)}%
-                  </span>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Tab strip */}
-        <nav className="flex items-center gap-1 overflow-x-auto border-t border-edge px-2 sm:px-4">
+        {/* Section tabs */}
+        <nav
+          aria-label="Sections"
+          className="mx-auto flex max-w-[1400px] items-center gap-1 overflow-x-auto px-2 sm:px-4"
+        >
           {SCREENS.map((item) => {
-            const Icon = item.icon;
             const isActive =
               item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to);
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={`group flex shrink-0 items-center gap-2 border-b-2 px-3 py-2.5 text-xs font-semibold transition-colors ${
+                aria-current={isActive ? "page" : undefined}
+                title={item.key !== "" ? `Shortcut: ${item.key}` : undefined}
+                className={`shrink-0 border-b-2 px-3 py-2.5 text-[13px] font-semibold transition-colors ${
                   isActive
                     ? "border-accent text-accent-ink"
                     : "border-transparent text-ink-2 hover:border-edge hover:text-ink"
                 }`}
               >
-                <Icon width={14} height={14} />
-                <span>{item.label}</span>
-                <span
-                  className={`mono-label flex h-4 w-4 items-center justify-center rounded-sm text-[9px] ${
-                    isActive ? "bg-accent-soft text-accent-ink" : "bg-white/5 text-ink-muted"
-                  }`}
-                >
-                  {item.key}
-                </span>
+                {item.label}
               </NavLink>
             );
           })}
         </nav>
       </header>
 
-      {/* Main content */}
-      <main className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-7">
+      {(origin === "SYNTHETIC" || origin === "MIXED") && (
+        <div className="border-b border-warning-ink/20 bg-warning-soft">
+          <p className="mx-auto max-w-[1400px] px-4 py-2 text-xs text-ink sm:px-6">
+            <strong className="font-semibold text-warning-ink">Demonstration data.</strong>{" "}
+            {origin === "SYNTHETIC"
+              ? "Every fare on this site comes from APIx's labelled synthetic generator, not from airline or OTA websites."
+              : "Some fares on this site come from APIx's labelled synthetic generator."}{" "}
+            The pipeline, cleaning and index maths are the real production code; live collection
+            starts source by source once each site's terms-of-service review is recorded.{" "}
+            <NavLink to="/pipeline" className="font-semibold text-accent-ink underline underline-offset-2">
+              How collection works
+            </NavLink>
+          </p>
+        </div>
+      )}
+
+      <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6">
         <Outlet />
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-edge bg-navy px-6 py-4 text-xs text-ink-2">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4">
+      <footer className="border-t border-edge bg-surface">
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-4 py-5 text-xs text-ink-2 sm:px-6">
           <div className="flex items-center gap-2">
-            <span className="font-mono font-bold text-on-navy">APIx</span>
-            <span>|</span>
-            <span>Real-Time Airfare Price Index for India</span>
+            <ApixMark className="h-5 w-5" />
+            <span className="font-semibold text-ink">APIx</span>
+            <span>Real-time Airfare Price Index for India · Team Vyom</span>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            <NavLink to="/reports" className="transition-colors hover:text-accent-ink">
+            <NavLink to="/reports" className="hover:text-accent-ink">
               Methodology
             </NavLink>
-            <span>|</span>
-            <NavLink to="/settings" className="transition-colors hover:text-accent-ink">
-              Audit Trail
+            <NavLink to="/validation" className="hover:text-accent-ink">
+              Validation
+            </NavLink>
+            <NavLink to="/pipeline" className="hover:text-accent-ink">
+              Compliance
+            </NavLink>
+            <NavLink to="/api-access" className="hover:text-accent-ink">
+              API for NSO &amp; RBI
             </NavLink>
           </div>
-          <div className="mono-label text-[10px] text-ink-muted">
-            Built for measurement. Designed for scale.
-          </div>
+          <p className="text-ink-muted">Not an official statistical release.</p>
         </div>
       </footer>
     </div>

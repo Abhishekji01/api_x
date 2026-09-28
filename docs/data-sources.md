@@ -142,6 +142,34 @@ one-month lag.
 Collection basis: OFFICIAL_PUBLICATION. No automated collection of MoSPI's release is
 reviewed or enabled.
 
+The problem statement names **eSankhyiki** (<https://esankhyiki.mospi.gov.in>) as its
+dataset portal. Two ways to get the series from there:
+
+1. **By hand (no review needed).** On eSankhyiki, open *Consumer Price Index* → item
+   level, pick the air-fare item and the months you need, download, and write the CSV
+   below.
+2. **Through the API (`make fetch-cpi`).** `apix_scheduler.esankhyiki_fetch` calls
+   eSankhyiki's API (`api.mospi.gov.in/api/cpi/getCPIData`, base 2024, item level)
+   **through the PolicyEngine** and writes the same CSV. It refuses to run until a team
+   member has read MoSPI's terms and recorded the review on the `cpi_mospi` source in
+   `config/sources.yaml` (`enabled: true`, `tos_verdict: PERMITTED`,
+   `tos_reviewed_at`, `legal_basis: OFFICIAL_PUBLICATION`). The default item code
+   (`07.3.3.1.2.01`) must be confirmed against the portal's own item list first —
+   MoSPI owns the code list.
+
+   ```sh
+   make fetch-cpi YEARS=2025,2026
+   make load-cpi FILE=db/seeds/cpi/cpi_airfare.csv NOTE="MoSPI eSankhyiki API, <date>"
+   ```
+
+Context for the method write-up: MoSPI's own CPI (base 2024) release for January 2026
+states in its FAQ that "airfares are collected through well-known online platforms",
+and publishes air travel inside group 07.3 *Passenger transport services*. APIx is a
+daily, route-level, matched-sample version of that same online collection.
+
+Once loaded, the series appears on the dashboard's **Validation** page (`/v1/validation`)
+with its score against APIx — no code change needed.
+
 ### Where to put it, and how to load it
 
 ```

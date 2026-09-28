@@ -147,8 +147,9 @@ services:
     build:
       context: .
       dockerfile: infra/docker/web.Dockerfile
-    environment:
-      VITE_APIX_API_URL: http://localhost:8000
+      # Build-time, not runtime: Vite inlines it into the bundle (see web.Dockerfile).
+      args:
+        VITE_APIX_API_URL: ${VITE_APIX_API_URL:-http://localhost:8000}
     ports:
       - "127.0.0.1:5173:8080"
     depends_on:

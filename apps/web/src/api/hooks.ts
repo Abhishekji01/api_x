@@ -9,13 +9,60 @@
 
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { api, unwrap } from "./client";
-import type { MethodOverrides } from "./client";
+import type { HeatmapCell, MethodOverrides } from "./client";
 
-export function useIndexSeries(series: string) {
+export function useIndexSeries(series: string, freq: "M" | "D" = "M") {
   return useQuery({
-    queryKey: ["index", series],
+    queryKey: ["index", series, freq],
     queryFn: async () =>
-      unwrap(await api.GET("/v1/index", { params: { query: { series, freq: "M" } } })),
+      unwrap(
+        await api.GET("/v1/index", { params: { query: { series, freq, limit: 1000 } } }),
+      ),
+  });
+}
+
+/** Every page of the daily route x day grid from ``from`` onwards. */
+export function useHeatmapDaily(from: string | undefined) {
+  return useQuery({
+    queryKey: ["heatmap", "D", from ?? null],
+    enabled: from !== undefined,
+    queryFn: async () => {
+      const items: HeatmapCell[] = [];
+      let cursor: string | undefined;
+      for (let page = 0; page < 20; page += 1) {
+        const body = unwrap(
+          await api.GET("/v1/heatmap", {
+            params: {
+              query: {
+                freq: "D",
+                limit: 1000,
+                ...(from === undefined ? {} : { from }),
+                ...(cursor === undefined ? {} : { cursor }),
+              },
+            },
+          }),
+        );
+        items.push(...body.items);
+        if (!body.pagination.has_more || body.pagination.next_cursor == null) break;
+        cursor = body.pagination.next_cursor;
+      }
+      return items;
+    },
+  });
+}
+
+export function useValidation(series = "APIX.ALL.D") {
+  return useQuery({
+    queryKey: ["validation", series],
+    queryFn: async () =>
+      unwrap(await api.GET("/v1/validation", { params: { query: { series } } })),
+  });
+}
+
+export function usePipeline() {
+  return useQuery({
+    queryKey: ["pipeline"],
+    queryFn: async () => unwrap(await api.GET("/v1/pipeline", {})),
   });
 }
 

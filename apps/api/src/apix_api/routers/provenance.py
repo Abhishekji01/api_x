@@ -16,7 +16,15 @@ from apix_api.auth import require_authenticated
 from apix_api.errors import MICRODATA_ERROR_RESPONSES
 from apix_api.meta import build_meta
 from apix_api.schemas import ProvenanceResponse, ProvenanceSource, ProvenanceTreatment
-from apix_core.models import FareQuote, FareQuoteClean, IndexValueQuote, Route, Series, SourcePolicy
+from apix_core.models import (
+    DataSnapshot,
+    FareQuote,
+    FareQuoteClean,
+    IndexValueQuote,
+    Route,
+    Series,
+    SourcePolicy,
+)
 from apix_core.provenance.resolve import ProvenanceChain, resolve
 from apix_core.provenance.store import ProvenanceError
 
@@ -76,9 +84,20 @@ def _resolve_full(session: Session, quote_id: uuid.UUID) -> _FullChain | None:
 
     policy = session.get(SourcePolicy, chain.source.id)
 
-    clean_row = session.execute(
-        select(FareQuoteClean).where(FareQuoteClean.quote_id == quote_id)
-    ).scalar_one_or_none()
+    # One quote is cleaned once per index run that reads it (each run is its own
+    # snapshot), so there can be several clean rows. The treatment shown is the most
+    # recent one; the lineage below covers every run the quote fed.
+    clean_rows = (
+        session.execute(
+            select(FareQuoteClean)
+            .join(DataSnapshot, DataSnapshot.id == FareQuoteClean.snapshot_id)
+            .where(FareQuoteClean.quote_id == quote_id)
+            .order_by(DataSnapshot.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
+    clean_row = clean_rows[0] if clean_rows else None
     treatment = (
         ProvenanceTreatment(
             clean_id=str(clean_row.id),
@@ -97,9 +116,9 @@ def _resolve_full(session: Session, quote_id: uuid.UUID) -> _FullChain | None:
         lineage_rows = session.execute(
             select(Series.code, IndexValueQuote.period)
             .join(IndexValueQuote, IndexValueQuote.series_id == Series.id)
-            .where(IndexValueQuote.clean_id == clean_row.id)
+            .where(IndexValueQuote.clean_id.in_([row.id for row in clean_rows]))
         ).all()
-        contributed_to = sorted(f"{code}:{period.isoformat()}" for code, period in lineage_rows)
+        contributed_to = sorted({f"{code}:{period.isoformat()}" for code, period in lineage_rows})
 
     return _FullChain(
         chain=chain,

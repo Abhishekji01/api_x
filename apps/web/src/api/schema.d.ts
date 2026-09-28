@@ -36,7 +36,7 @@ export interface paths {
         };
         /**
          * Prometheus metrics
-         * @description Expose the process's Prometheus registry.
+         * @description Expose the process's Prometheus registry, refreshing the DB-derived gauges first.
          */
         get: operations["metrics_metrics_get"];
         put?: never;
@@ -56,11 +56,8 @@ export interface paths {
         };
         /**
          * Readiness probe
-         * @description Report readiness dependency by dependency.
-         *
-         *     Phase 3 replaces these placeholders with real probes (a ``SELECT 1``, a Redis
-         *     ``PING``, the latest ``index_run`` status). The shape is fixed now so the deployment
-         *     manifests can be written against it.
+         * @description Report readiness dependency by dependency: a real ``SELECT 1``, a real Redis
+         *     ``PING``, and the three config files loaded and validated.
          */
         get: operations["readyz_readyz_get"];
         put?: never;
@@ -103,10 +100,13 @@ export interface paths {
         };
         /**
          * What moved the index in a period
-         * @description Split a period-on-period movement into additive contributions.
+         * @description No index-movement decomposition method is implemented.
          *
-         *     The residual is reported as its own line rather than distributed across the named
-         *     components. A decomposition that always adds to exactly 100% is hiding something.
+         *     CLAUDE.md principle 5: raise rather than invent a methodology. Building a real
+         *     price-component / compositional-mix decomposition (mix_route, mix_carrier,
+         *     quality_adjustment, ...) is a methodology decision for whoever owns the index
+         *     specification, not something to improvise in the API layer. Always 503; the 200
+         *     schema stays declared so the contract shape is unchanged for when it is built.
          */
         get: operations["get_decomposition_v1_decomposition_get"];
         put?: never;
@@ -151,8 +151,11 @@ export interface paths {
          * Route-by-period index heatmap
          * @description The route x period grid the dashboard renders as a heatmap.
          *
-         *     Paginated like every other list endpoint: 50 routes over several years is a large
-         *     grid, and the client should not have to guess how much it is about to receive.
+         *     ``freq=D`` reads the daily route series (``APIX.ROUTE.<code>.D``) — the
+         *     route x day "sector heatmap" the problem statement asks for.
+         *
+         *     Cached (``apix_api.cache``) keyed on the latest visible run touching any route
+         *     series, so a new index run invalidates every cached grid naturally.
          */
         get: operations["get_heatmap_v1_heatmap_get"];
         put?: never;
@@ -175,11 +178,18 @@ export interface paths {
          * @description Return the index for a series over a period range.
          *
          *     The value, the number of quotes behind it and the basket coverage travel together:
-         *     a consumer is never handed a number without the evidence base for it.
+         *     a consumer is never handed a number without the evidence base for it. For each
+         *     period, this is the current best estimate — the most recent vintage of that period
+         *     a caller with this role can see.
          *
-         *     In this phase every series answers with the example values, offset per series code
-         *     so that two series drawn on one chart are visibly two lines. The headline series is
-         *     served unshifted, so the documented examples stay stable.
+         *     A series with no published values yet (the headline ``APIX.ALL.M``, until DGCA
+         *     passenger-share weights are loaded — see docs/data-sources.md) answers with an
+         *     empty page, not a 404: an unpublished series is a recorded gap, not an error, and
+         *     a series *code* is not validated against a fixed enum at this layer.
+         *
+         *     Cached (``apix_api.cache``) keyed on the resolved series' latest visible run id, so
+         *     a new index run invalidates naturally — a stale cache entry can only ever be served
+         *     up to the moment a newer run exists, never past it.
          */
         get: operations["get_index_v1_index_get"];
         put?: never;
@@ -201,9 +211,9 @@ export interface paths {
          * Route indices behind one headline value
          * @description Audit drill-down, level 2: headline value -> the route indices it aggregates.
          *
-         *     ``weight`` and ``contribution_pct_points`` are null until Phase 2 loads DGCA
-         *     passenger shares — the aggregation is unweighted today and the response says so
-         *     rather than serving an estimated weight.
+         *     ``weight`` and ``contribution_pct_points`` are null until DGCA passenger shares are
+         *     loaded into ``config/basket.yaml`` — the aggregation is unweighted today and the
+         *     response says so rather than serving an estimated weight.
          */
         get: operations["get_index_contributors_v1_index_contributors_get"];
         put?: never;
@@ -226,7 +236,12 @@ export interface paths {
          * @description Every change to a published value, with when and why.
          *
          *     First publications appear with ``old_value = null`` so the log is a complete history
-         *     of what was said, not only of what changed.
+         *     of what was said, not only of what changed. ``index_run_id`` is not a stored column
+         *     on ``revision_log`` (it records the change, not which run made it), so it is
+         *     resolved back through ``index_value`` — matched on (series, period, value) — in the
+         *     same query rather than one lookup per row: a window function keeps exactly one
+         *     candidate run per revision even if two runs coincidentally spliced to the same
+         *     value for the same period.
          */
         get: operations["get_index_revisions_v1_index_revisions_get"];
         put?: never;
@@ -248,8 +263,12 @@ export interface paths {
          * A period's value as it stood on a given date
          * @description Answer "what did we say this period was, on that date".
          *
-         *     Revisions are visible rather than silent: ``index_value`` rows are never overwritten,
-         *     so every vintage remains queryable and every change appears in ``revision_log``.
+         *     Resolves against ``index_run.vintage_date``, not merely the latest run: among every
+         *     run whose ``vintage_date <= as_of`` and that published a value for ``period``, the
+         *     one with the latest ``vintage_date`` (ties broken by ``computed_at``) is what a
+         *     consumer asking on that date would have been told. Revisions are visible rather
+         *     than silent: ``index_value`` rows are never overwritten, so every vintage remains
+         *     queryable and every change appears in ``revision_log``.
          */
         get: operations["get_index_vintage_v1_index_vintage_get"];
         put?: never;
@@ -272,9 +291,7 @@ export interface paths {
          * @description Mean and median fare by advance-purchase window.
          *
          *     ``index_vs_cheapest`` rebases each window against the cheapest window on the same
-         *     route, which is the comparison a traveller actually cares about. The quartiles carry
-         *     the dispersion the chart draws as a band. A ``carrier`` filter shifts the example
-         *     curve deterministically so a split chart draws distinct, stable lines.
+         *     route, which is the comparison a traveller actually cares about.
          */
         get: operations["get_leadtime_v1_leadtime__code__get"];
         put?: never;
@@ -296,9 +313,10 @@ export interface paths {
          * The route basket and its weights
          * @description Serve the current basket.
          *
-         *     ``weights_populated`` is false and every ``dgca_pax_share`` is null until Phase 2
-         *     loads the DGCA release. A consumer can therefore tell, from the response alone, that
-         *     the index is not yet weighted — rather than discovering it from a footnote.
+         *     ``weights_populated`` is false and every ``dgca_pax_share`` is null until the DGCA
+         *     release is loaded into ``config/basket.yaml``. A consumer can therefore tell, from
+         *     the response alone, that the index is not yet weighted — rather than discovering it
+         *     from a footnote.
          */
         get: operations["get_basket_v1_metadata_basket_get"];
         put?: never;
@@ -318,11 +336,8 @@ export interface paths {
         };
         /**
          * Scheduled domestic carriers
-         * @description Serve the carrier reference list.
-         *
-         *     Values mirror ``db/seeds/carriers.csv`` (DGCA scheduled domestic operators) — real
-         *     reference data, not placeholders. Phase 3 serves this from the ``carrier`` table
-         *     the seed loads; the hard-coded copy exists only because this phase has no database.
+         * @description Serve the carrier reference list from the ``carrier`` table (``db/seeds/carriers.csv``,
+         *     DGCA scheduled domestic operators — real reference data, loaded by ``make seed``).
          */
         get: operations["get_carriers_v1_metadata_carriers_get"];
         put?: never;
@@ -367,13 +382,10 @@ export interface paths {
         put?: never;
         /**
          * Compute a preview index run under modified method settings
-         * @description Run the index under the method in force with the given fields changed.
+         * @description Run the elementary aggregate under the method in force and under the override.
          *
-         *     In this phase the preview values are placeholders, like every other number this
-         *     service serves — but they are a deterministic function of the previewed
-         *     configuration's hash, so the same settings always preview to the same series and
-         *     any change to a setting visibly moves the line. Phase 3 replaces the arithmetic
-         *     with a real run against the current snapshot; the response shape is the contract.
+         *     Never a published statistic — ``X-APIx-Data-Status: PREVIEW`` always, regardless of
+         *     caller role.
          */
         post: operations["post_method_preview_v1_method_preview_post"];
         delete?: never;
@@ -391,13 +403,33 @@ export interface paths {
         };
         /**
          * Model estimate for the period that has not closed
-         * @description Return the current nowcast.
+         * @description No nowcast bridge model is implemented.
          *
-         *     Served from ``nowcast_value``, never from ``index_value``: a modelled estimate of an
-         *     open period must not be mistakable for a published index number. Every point carries
-         *     an explicit caveat saying so.
+         *     ``apix_core.nowcast`` is an empty stub — CLAUDE.md principle 5: raise rather than
+         *     invent a model to make the endpoint return something. Always 503; the 200 schema
+         *     stays declared so the contract shape is unchanged for when a real model lands.
          */
         get: operations["get_nowcast_v1_nowcast_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pipeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Collection, cleaning and compliance, end to end
+         * @description What the collector gathered, what cleaning did to it, and under what rules.
+         */
+        get: operations["get_pipeline_v1_pipeline_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -422,6 +454,8 @@ export interface paths {
          *     source it came from, the moment it was observed and the legal basis on which it was
          *     collected. If this endpoint cannot answer for a quote, that quote should not have
          *     contributed to a published number.
+         *
+         *     Microdata: requires a researcher or official API key.
          */
         get: operations["get_provenance_v1_provenance__quote_id__get"];
         put?: never;
@@ -442,11 +476,6 @@ export interface paths {
         /**
          * Cleaned quotes behind a route and period
          * @description List the observations a route index value rests on.
-         *
-         *     The first row reuses the documented example quote id, so the drill-down to
-         *     ``/v1/provenance/{quote_id}`` works end to end against this phase. One row is an
-         *     outlier and one is imputed: the treatments a consumer must see are present in the
-         *     example payload, not only in the schema.
          */
         get: operations["list_quotes_v1_quotes_get"];
         put?: never;
@@ -468,8 +497,8 @@ export interface paths {
          * Routes in the current basket
          * @description List the basket.
          *
-         *     ``dgca_pax_share`` is null on every route until Phase 2 loads the DGCA release. That
-         *     null is the honest answer, not a missing field.
+         *     ``dgca_pax_share`` is null on every route until the DGCA release is loaded into
+         *     ``config/basket.yaml``. That null is the honest answer, not a missing field.
          */
         get: operations["list_routes_v1_routes_get"];
         put?: never;
@@ -492,12 +521,11 @@ export interface paths {
          * @description Return the fare distribution for one route over time.
          *
          *     Quartiles are returned alongside the mean because an airfare distribution is
-         *     right-skewed: the mean alone misrepresents what a traveller pays.
-         *
-         *     The example payload varies deterministically with ``advance_days`` and ``carrier``
-         *     so a chart split by either draws distinct, stable lines; a shorter lead time prices
-         *     higher, as the real curve will. The final period is served ``sold_out`` so the
-         *     front end's shading has something honest to shade.
+         *     right-skewed: the mean alone misrepresents what a traveller pays. Grouped by the
+         *     day fares were observed (``query_date``, derived as ``travel_date - advance_days``)
+         *     and, when ``advance_days`` is not filtered, reported at the 14-day lead time
+         *     (the mid-window default the shipped basket documents) rather than blending lead
+         *     times of very different price levels into one misleading average.
          */
         get: operations["get_route_series_v1_routes__code__series_get"];
         put?: never;
@@ -524,6 +552,33 @@ export interface paths {
          *     boundary.
          */
         get: operations["get_sdmx_data_v1_sdmx_data__flow_ref___key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/validation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Back-test: APIx against CPI air fare, DGCA average fares and a unit-value mean
+         * @description Every benchmark the index can be checked against, with its score.
+         *
+         *     * **CPI air fare** (MoSPI, eSankhyiki) — monthly; scored against the monthly mean of
+         *       the daily APIx series.
+         *     * **DGCA average fare** — monthly, INR; the mean across loaded basket routes, rebased.
+         *     * **Unit-value mean** — the plain daily average of the same quotes APIx is built
+         *       from. Not a benchmark of truth: it shows how far a naive average (which moves with
+         *       the booking-window and route mix) departs from a matched-sample index.
+         */
+        get: operations["get_validation_v1_validation_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -569,6 +624,43 @@ export interface components {
              * @description False until Phase 2 loads DGCA passenger shares for every route.
              */
             weights_populated: boolean;
+        };
+        /**
+         * Benchmark
+         * @description A series APIx is checked against, and how well it agrees.
+         */
+        Benchmark: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "CPI_AIRFARE" | "DGCA_AVG_FARE" | "UNIT_VALUE";
+            /**
+             * Frequency
+             * @enum {string}
+             */
+            frequency: "D" | "M";
+            /**
+             * How To Load
+             * @description The command that loads this benchmark, when it is missing.
+             */
+            how_to_load?: string | null;
+            /** Label */
+            label: string;
+            /** Note */
+            note: string;
+            /** Points */
+            points: components["schemas"]["SeriesPoint"][];
+            score: components["schemas"]["ValidationScore"] | null;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "LOADED" | "NOT_LOADED" | "COMPUTED";
+            /** Unit */
+            unit: string;
         };
         /**
          * CarrierOut
@@ -1091,6 +1183,87 @@ export interface components {
             pagination: components["schemas"]["PageInfo"];
         };
         /**
+         * PipelineResponse
+         * @description Collection and cleaning, end to end, with the compliance position of every source.
+         */
+        PipelineResponse: {
+            /** Advance Windows */
+            advance_windows: string[];
+            /**
+             * Data Origin
+             * @enum {string}
+             */
+            data_origin: "COLLECTED" | "SYNTHETIC" | "MIXED" | "NONE";
+            /** Days Collected */
+            days_collected: number;
+            /** First Query Date */
+            first_query_date: string | null;
+            /** Last Query Date */
+            last_query_date: string | null;
+            meta: components["schemas"]["ResponseMeta"];
+            /** Policy Decisions */
+            policy_decisions: {
+                [key: string]: number;
+            };
+            /** Routes In Basket */
+            routes_in_basket: number;
+            /** Safeguards */
+            safeguards: string[];
+            /** Sources */
+            sources: components["schemas"]["PipelineSource"][];
+            /** Stages */
+            stages: components["schemas"]["PipelineStage"][];
+            /** Sweep Times Local */
+            sweep_times_local: string[];
+        };
+        /** PipelineSource */
+        PipelineSource: {
+            /** Blocked Total */
+            blocked_total: number;
+            /** Code */
+            code: string;
+            /** Crawl Delay S */
+            crawl_delay_s: number | null;
+            /** Display Name */
+            display_name: string;
+            /** Domain */
+            domain: string;
+            /** Enabled */
+            enabled: boolean;
+            /** Last Run At */
+            last_run_at: string | null;
+            /** Last Run Status */
+            last_run_status: string | null;
+            /** Legal Basis */
+            legal_basis: string | null;
+            /** Max Requests Per Hour */
+            max_requests_per_hour: number | null;
+            /** Quotes Total */
+            quotes_total: number;
+            /** Robots Url */
+            robots_url: string | null;
+            /** Source Type */
+            source_type: string;
+            /** Tos Reviewed At */
+            tos_reviewed_at: string | null;
+            /** Tos Verdict */
+            tos_verdict: string | null;
+        };
+        /** PipelineStage */
+        PipelineStage: {
+            /** Count */
+            count: number;
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "collected" | "window" | "clean" | "outliers" | "imputed" | "indexed";
+            /** Label */
+            label: string;
+            /** Note */
+            note: string;
+        };
+        /**
          * Problem
          * @description An RFC 9457 problem detail object.
          * @example {
@@ -1296,10 +1469,10 @@ export interface components {
          * ResponseMeta
          * @description Metadata attached to every APIx response.
          *
-         *     ``data_status`` is not decoration. Until Phase 3 wires the database in, every
-         *     endpoint returns ``EXAMPLE_ONLY``: the shape is real, the numbers are placeholders
-         *     and are labelled as such so that nothing downstream can mistake them for published
-         *     statistics.
+         *     ``data_status`` is not decoration: ``PUBLISHED`` means a released index_run,
+         *     ``PROVISIONAL`` a draft one visible only to a researcher/official caller, and
+         *     ``PREVIEW`` a what-if method run that is never a published statistic — so nothing
+         *     downstream can mistake one for another.
          */
         ResponseMeta: {
             /**
@@ -1489,6 +1662,27 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /**
+         * SeriesPoint
+         * @description One period of a comparison series, on its own unit and as an index.
+         */
+        SeriesPoint: {
+            /**
+             * Index Value
+             * @description The same series rebased to 100 at the first period of the comparison.
+             */
+            index_value: number;
+            /**
+             * Period
+             * Format: date
+             */
+            period: string;
+            /**
+             * Value
+             * @description The series in its own unit (index points, or INR).
+             */
+            value: number;
+        };
         /** SourceCoverage */
         SourceCoverage: {
             /** Blocked Count */
@@ -1511,9 +1705,13 @@ export interface components {
         /**
          * SpliceMethod
          * @description How consecutive windows are joined into a continuous series.
+         *
+         *     Whichever method is configured, splicing only ever appends the newest period: a
+         *     published value is never revised by rolling the window forward (CLAUDE.md
+         *     principle 4). See :mod:`apix_core.index.splice` for the formulas.
          * @enum {string}
          */
-        SpliceMethod: "movement" | "window" | "half" | "mean";
+        SpliceMethod: "movement" | "window" | "half" | "mean" | "fbew" | "fbmw";
         /**
          * ValidationProblem
          * @description A 422 problem, carrying the individual field errors.
@@ -1566,6 +1764,58 @@ export interface components {
             type: string;
         } & {
             [key: string]: unknown;
+        };
+        /**
+         * ValidationResponse
+         * @description APIx against every available benchmark — the problem statement's back-test.
+         *
+         *     ``data_origin`` says what the APIx series itself was computed from. A score against a
+         *     benchmark is only meaningful when ``data_origin`` is ``COLLECTED``; for a
+         *     ``SYNTHETIC`` series the page demonstrates the harness, not a finding.
+         */
+        ValidationResponse: {
+            /** Apix Daily */
+            apix_daily: components["schemas"]["SeriesPoint"][];
+            /** Apix Monthly */
+            apix_monthly: components["schemas"]["SeriesPoint"][];
+            /** Benchmarks */
+            benchmarks: components["schemas"]["Benchmark"][];
+            /**
+             * Data Origin
+             * @enum {string}
+             */
+            data_origin: "COLLECTED" | "SYNTHETIC" | "MIXED" | "NONE";
+            meta: components["schemas"]["ResponseMeta"];
+            /** Min Periods For Score */
+            min_periods_for_score: number;
+            /** Series */
+            series: string;
+        };
+        /** ValidationScore */
+        ValidationScore: {
+            /**
+             * Correlation
+             * @description Pearson correlation of the two index series.
+             */
+            correlation: number | null;
+            /**
+             * Directional Accuracy
+             * @description Share of period-to-period moves where both series moved the same way (%).
+             */
+            directional_accuracy: number | null;
+            /**
+             * Mape
+             * @description Mean absolute percentage error, index vs index.
+             */
+            mape: number | null;
+            /** N Periods */
+            n_periods: number;
+            /** Note */
+            note: string;
+            /** Period From */
+            period_from: string | null;
+            /** Period To */
+            period_to: string | null;
         };
         /**
          * VintageValue
@@ -1697,6 +1947,16 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
             /** @description Not found */
             404: {
                 headers: {
@@ -1771,6 +2031,16 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
             /** @description Not found */
             404: {
                 headers: {
@@ -1811,6 +2081,16 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description No methodology is implemented for this endpoint yet. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
         };
     };
     export_csv_v1_export_csv_get: {
@@ -1839,6 +2119,26 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Microdata or pre-release figures require a researcher/official key */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1896,6 +2196,8 @@ export interface operations {
                 from?: string | null;
                 /** @description Inclusive end. */
                 to?: string | null;
+                /** @description M for the monthly route series, D for the daily ones. */
+                freq?: "M" | "D";
                 /** @description Opaque cursor from a previous response's `pagination.next_cursor`. */
                 cursor?: string | null;
                 /** @description Page size. Default 100, maximum 1000. */
@@ -1918,6 +2220,16 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2009,6 +2321,16 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
             /** @description Not found */
             404: {
                 headers: {
@@ -2080,6 +2402,16 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2165,6 +2497,16 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
             /** @description Not found */
             404: {
                 headers: {
@@ -2234,6 +2576,16 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2320,6 +2672,16 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
             /** @description Not found */
             404: {
                 headers: {
@@ -2382,6 +2744,16 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2460,6 +2832,16 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
             /** @description Not found */
             404: {
                 headers: {
@@ -2522,6 +2904,16 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2604,6 +2996,26 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Microdata or pre-release figures require a researcher/official key */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
             /** @description Not found */
             404: {
                 headers: {
@@ -2650,10 +3062,6 @@ export interface operations {
         parameters: {
             query?: {
                 target_series?: string;
-                /** @description Opaque cursor from a previous response's `pagination.next_cursor`. */
-                cursor?: string | null;
-                /** @description Page size. Default 100, maximum 1000. */
-                limit?: number;
             };
             header?: never;
             path?: never;
@@ -2672,6 +3080,106 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Internal error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description No methodology is implemented for this endpoint yet. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    get_pipeline_v1_pipeline_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineResponse"];
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2745,6 +3253,26 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Microdata or pre-release figures require a researcher/official key */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2834,6 +3362,26 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Microdata or pre-release figures require a researcher/official key */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
             /** @description Not found */
             404: {
                 headers: {
@@ -2905,6 +3453,16 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2999,6 +3557,16 @@ export interface operations {
                     "application/problem+json": unknown;
                 };
             };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
             /** @description Not found */
             404: {
                 headers: {
@@ -3048,7 +3616,7 @@ export interface operations {
             path: {
                 /** @description Dataflow reference, `agencyId,dataflowId,version`, e.g. `IN_APIX,DF_AIRFARE_INDEX,1.0.0`. */
                 flow_ref: string;
-                /** @description Series key: dimension values in DSD order, dot-separated. `all` returns every series. Example `M.ALL.ALL.ALL` is FREQ.ROUTE.CARRIER_TYPE.AP_WINDOW. */
+                /** @description Series key: dimension values in DSD order, dot-separated. `M.ALL.ALL.ALL` is FREQ.ROUTE.CARRIER_TYPE.AP_WINDOW. */
                 key: string;
             };
             cookie?: never;
@@ -3067,6 +3635,99 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationProblem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Internal error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+        };
+    };
+    get_validation_v1_validation_get: {
+        parameters: {
+            query?: {
+                /** @description Daily APIx series to validate. */
+                series?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationResponse"];
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Invalid API key */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

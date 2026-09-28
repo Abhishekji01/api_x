@@ -32,6 +32,7 @@ htmlcov/
 # Node / web
 node_modules/
 apps/web/dist/
+apps/web/dist-demo/
 apps/web/.vite/
 apps/web/playwright-report/
 apps/web/test-results/

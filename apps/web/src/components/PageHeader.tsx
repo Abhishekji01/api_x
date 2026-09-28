@@ -16,7 +16,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, art }: PageHeaderProps) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-edge bg-surface p-5 shadow-card">
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-edge bg-surface p-5 shadow-card">
       <div className="min-w-0">
         <h2 className="text-xl font-semibold tracking-tight text-ink">{title}</h2>
         <p className="mt-1 max-w-2xl text-sm text-ink-2">{subtitle}</p>

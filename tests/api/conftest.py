@@ -35,6 +35,7 @@ from apix_core.policy.ratelimit import TokenBucketLimiter
 from apix_core.provenance.hashing import sha256_hex
 from apix_core.settings import get_settings
 from apix_core.testing.seed import seed_synthetic
+from apix_scheduler.daily_index_run import compute_and_persist_daily
 from apix_scheduler.index_run import compute_and_persist
 from tests.conftest import requires_docker
 
@@ -51,6 +52,8 @@ LATEST_SEEDED_DATE = date(2026, 8, 31)
 FIRST_AS_OF = date(2026, 8, 10)
 SECOND_AS_OF = date(2026, 8, 20)
 WINDOW_DAYS = 21
+DAILY_WINDOW_DAYS = 35
+DAILY_ROUTE_SERIES = "APIX.ROUTE.DEL-BOM.D"
 ROUTE_SERIES = "APIX.ROUTE.DEL-BOM.M"
 RESEARCHER_API_KEY = "test-researcher-key-do-not-use-in-prod"
 
@@ -77,6 +80,7 @@ def seeded_database_url(postgres_url: str, repo_root: Path) -> str:
         with Session(engine) as session:
             compute_and_persist(session, FIRST_AS_OF, WINDOW_DAYS)
             compute_and_persist(session, SECOND_AS_OF, WINDOW_DAYS)
+            compute_and_persist_daily(session, LATEST_SEEDED_DATE, DAILY_WINDOW_DAYS)
 
             key_row = ApiKey(
                 id=uuid.uuid4(),

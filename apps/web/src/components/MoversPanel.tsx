@@ -1,15 +1,24 @@
 /**
- * "Notable movers" — the basket's largest period-over-period changes. Deliberately not
+ * "Notable movers" — the basket's largest changes over a stated comparison. Direction is
+ * shown with an arrow and a sign, in neutral ink: a price moving is not a status. Deliberately not
  * branded "AI insights": it is the same momentum arithmetic `RouteMap` colours corridors
  * with, in plain language. No model, no generated text, nothing here that doesn't trace
  * back to `/v1/heatmap`.
  */
 
 import type { Mover } from "../lib/movers";
-import { formatPct, formatPeriod } from "../lib/format";
+import { formatDay, formatPct, formatPeriod } from "../lib/format";
 import { IconTrend } from "./icons";
 
-export function MoversPanel({ movers }: { movers: Mover[] }) {
+export function MoversPanel({
+  movers,
+  comparison = "vs. previous period",
+  daily = false,
+}: {
+  movers: Mover[];
+  comparison?: string;
+  daily?: boolean;
+}) {
   if (movers.length === 0) {
     return <p className="text-sm text-ink-2">Not enough history yet to compare periods.</p>;
   }
@@ -20,9 +29,7 @@ export function MoversPanel({ movers }: { movers: Mover[] }) {
         return (
           <li key={m.routeCode} className="flex items-center gap-3 border-b border-grid pb-3 last:border-0 last:pb-0">
             <span
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                rising ? "bg-critical-soft text-critical-ink" : "bg-good-soft text-good-ink"
-              }`}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-ink"
             >
               <IconTrend
                 width={14}
@@ -32,13 +39,14 @@ export function MoversPanel({ movers }: { movers: Mover[] }) {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm text-ink">
-                <span className="font-mono font-semibold">{m.routeCode}</span>{" "}
-                <span className={rising ? "text-critical-ink" : "text-good-ink"}>
+                <span className="tnum font-semibold">{m.routeCode}</span>{" "}
+                <span className="tnum font-semibold text-ink">
+                  <span aria-hidden="true">{rising ? "▲ " : "▼ "}</span>
                   {formatPct(m.momentumPct)}
                 </span>
               </p>
               <p className="truncate text-xs text-ink-2">
-                vs. previous period, {formatPeriod(m.latestPeriod)}
+                {comparison}, {daily ? formatDay(m.latestPeriod) : formatPeriod(m.latestPeriod)}
               </p>
             </div>
           </li>
