@@ -1,12 +1,4 @@
-/**
- * Theme state — light only, and fixed, not OS-driven. The dashboard uses a light,
- * official-statistics design (index.css / theme/tokens.ts's LIGHT export) and stamps
- * `data-theme="light"` itself: an earlier version *followed* `prefers-color-scheme`,
- * which flipped panels for anyone on a dark OS theme whether or not that design was
- * ready. Re-introduce preference switching only alongside a real, user-facing toggle.
- */
-
-import { createContext, useContext, useEffect, useMemo } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { tokensFor } from "./tokens";
 import type { ThemeMode, ThemeTokens } from "./tokens";
@@ -18,28 +10,77 @@ interface ThemeContextValue {
   mode: ThemeMode;
   tokens: ThemeTokens;
   setPreference: (preference: ThemePreference) => void;
+  toggleMode: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const MODE: ThemeMode = "light";
+const STORAGE_KEY = "apix_theme_preference";
+
+function getSavedPreference(): ThemePreference {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === "dark" || saved === "light" || saved === "system") {
+      return saved;
+    }
+  } catch {
+    // fallback
+  }
+  return "system";
+}
+
+function resolveSystemMode(): ThemeMode {
+  if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    return "dark";
+  }
+  return "light";
+}
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [preference, setPreferenceState] = useState<ThemePreference>(getSavedPreference);
+  const [systemMode, setSystemMode] = useState<ThemeMode>(resolveSystemMode);
+
   useEffect(() => {
-    document.documentElement.dataset["theme"] = MODE;
-    document.documentElement.style.colorScheme = MODE;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => setSystemMode(media.matches ? "dark" : "light");
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
   }, []);
+
+  const mode: ThemeMode = preference === "system" ? systemMode : preference;
+
+  useEffect(() => {
+    document.documentElement.dataset["theme"] = mode;
+    document.documentElement.style.colorScheme = mode;
+    if (mode === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [mode]);
+
+  const setPreference = (pref: ThemePreference) => {
+    setPreferenceState(pref);
+    try {
+      localStorage.setItem(STORAGE_KEY, pref);
+    } catch {
+      // ignore
+    }
+  };
+
+  const toggleMode = () => {
+    setPreference(mode === "dark" ? "light" : "dark");
+  };
 
   const value = useMemo<ThemeContextValue>(
     () => ({
-      preference: MODE,
-      mode: MODE,
-      tokens: tokensFor(MODE),
-      setPreference: () => {
-        /* no-op until a real light-mode toggle exists */
-      },
+      preference,
+      mode,
+      tokens: tokensFor(mode),
+      setPreference,
+      toggleMode,
     }),
-    [],
+    [preference, mode],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
@@ -50,3 +91,4 @@ export function useTheme(): ThemeContextValue {
   if (value === null) throw new Error("useTheme called outside ThemeProvider");
   return value;
 }
+

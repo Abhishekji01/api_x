@@ -48,18 +48,22 @@ const RANGES = [
 ] as const;
 
 function Change({ label, pct }: { label: string; pct: number | null }) {
+  const isPositive = pct !== null && pct >= 0;
   return (
-    <div className="min-w-[88px]">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-ink-muted">{label}</p>
+    <div className="flex flex-col min-w-[90px] rounded-xl bg-surface-raised/80 p-2.5 border border-edge/60">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">{label}</p>
       {pct === null ? (
-        <p className="mt-0.5 text-sm text-ink-2">—</p>
+        <p className="mt-1 text-sm font-semibold text-ink-2">—</p>
       ) : (
-        <p className="tnum mt-0.5 text-base font-semibold text-ink">
-          <span aria-hidden="true" className="mr-1 text-xs text-ink-2">
-            {pct >= 0 ? "▲" : "▼"}
+        <div className="mt-1 flex items-center gap-1">
+          <span
+            className={`tnum text-sm font-bold ${
+              isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+            }`}
+          >
+            {isPositive ? "↑" : "↓"} {formatPct(pct)}
           </span>
-          {formatPct(pct)}
-        </p>
+        </div>
       )}
     </div>
   );
@@ -193,34 +197,43 @@ export default function Overview() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <section
           aria-labelledby="headline"
-          className="rounded-xl border border-edge bg-surface p-6 shadow-card lg:col-span-2"
+          className="rounded-2xl border border-edge/80 bg-surface p-7 shadow-sm card-hover lg:col-span-2 relative overflow-hidden"
         >
-          <p id="headline" className="text-sm font-semibold text-ink-2">
-            India Airfare Price Index · daily
-          </p>
-          {daily.isLoading && <p className="mt-4 text-sm text-ink-2">Loading…</p>}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-accent live-dot" />
+              <p id="headline" className="text-xs font-bold uppercase tracking-wider text-accent-ink">
+                India Airfare Price Index · Daily Headline
+              </p>
+            </div>
+            <span className="rounded-full bg-accent-soft px-3 py-1 text-[11px] font-bold text-accent-ink">
+              Base 100
+            </span>
+          </div>
+
+          {daily.isLoading && <p className="mt-6 text-sm text-ink-2">Loading daily index...</p>}
           {daily.error !== null && daily.error !== undefined && (
-            <p className="mt-4 text-sm text-critical-ink" role="alert">
+            <p className="mt-6 text-sm text-critical-ink" role="alert">
               Could not load the daily index.
             </p>
           )}
           {latest !== undefined && (
-            <div className="mt-2 flex flex-wrap items-end gap-x-10 gap-y-4">
+            <div className="mt-4 flex flex-wrap items-end justify-between gap-6">
               <div>
-                <p className="tnum text-5xl font-bold tracking-tight text-ink">
+                <p className="tnum text-6xl font-black tracking-tight text-ink font-sans">
                   {formatIndex(latest.value)}
                 </p>
-                <p className="mt-1 text-xs text-ink-2">
-                  {formatDate(latest.period)} ·{" "}
+                <p className="mt-1.5 text-xs font-medium text-ink-2">
+                  Published: <strong className="text-ink">{formatDate(latest.period)}</strong> ·{" "}
                   {firstDay !== undefined ? `${formatDate(firstDay)} = 100` : "base = 100"}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-3 pb-1">
+              <div className="flex flex-wrap gap-2">
                 <Change label="1 day" pct={pctChange(at(1), at(0))} />
                 <Change label="7 days" pct={pctChange(at(7), at(0))} />
                 <Change label="30 days" pct={pctChange(at(30), at(0))} />
                 <Change
-                  label={monthLatest ? `${formatPeriod(monthLatest.period)} vs prior` : "Month"}
+                  label={monthLatest ? `${formatPeriod(monthLatest.period)}` : "Month"}
                   pct={pctChange(monthPrev?.value, monthLatest?.value)}
                 />
               </div>
@@ -228,13 +241,12 @@ export default function Overview() {
           )}
           {items.length > 7 && <TrendStrip items={items} />}
           {latest !== undefined && (
-            <p className="mt-4 border-t border-grid pt-3 text-xs text-ink-2">
-              Today&apos;s value rests on{" "}
-              <strong className="tnum text-ink">{formatCount(latest.n_quotes)}</strong> fare
+            <p className="mt-5 border-t border-grid/60 pt-3.5 text-xs text-ink-2 leading-relaxed">
+              Today&apos;s index rests on{" "}
+              <strong className="tnum text-ink font-semibold">{formatCount(latest.n_quotes)}</strong> fare
               quotes across the basket, with{" "}
-              <strong className="tnum text-ink">{latest.coverage_pct?.toFixed(1) ?? "—"}%</strong>{" "}
-              of the base day&apos;s flights still matched — the index compares like with like,
-              not a changing mix of tickets.
+              <strong className="tnum text-ink font-semibold">{latest.coverage_pct?.toFixed(1) ?? "—"}%</strong>{" "}
+              of base flights matched — comparing like with like.
             </p>
           )}
         </section>

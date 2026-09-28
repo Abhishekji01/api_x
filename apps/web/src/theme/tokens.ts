@@ -38,91 +38,87 @@ export interface ThemeTokens {
   fontSize: { xs: number; sm: number; base: number; lg: number; xl: number };
 }
 
-const FONT = '"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
-const FONT_MONO = '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
+const FONT = '"Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif';
+const FONT_MONO = '"JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace';
 const SIZES = { xs: 11, sm: 12, base: 13, lg: 16, xl: 22 } as const;
 
-// Status colours are never reused as series colours, and each mode's four hues carry
-// the same meaning (good = rising/compliant, critical = falling/breached, ...) — but
-// the literal inks are tuned per mode, not copied verbatim, because the same hex that
-// reads clearly as "dark ink on a near-white card" turns muddy and low-contrast as
-// "dark ink on a near-black terminal surface." LIGHT keeps the original inks; DARK
-// (below) lightens each one for the same contrast job against a much darker ground.
-const STATUS = {
-  good: "#0ca30c",
-  warning: "#fab219",
-  serious: "#ec835a",
-  critical: "#d03b3b",
+const STATUS_LIGHT = {
+  good: "#10b981",
+  warning: "#f59e0b",
+  serious: "#f97316",
+  critical: "#ef4444",
+} as const;
+
+const STATUS_DARK = {
+  good: "#34d399",
+  warning: "#fbbf24",
+  serious: "#fb923c",
+  critical: "#f87171",
 } as const;
 
 export const LIGHT: ThemeTokens = {
   mode: "light",
-  page: "#f3f5f8",
+  page: "#f8fafc",
   surface: "#ffffff",
-  surfaceRaised: "#ffffff",
-  inkPrimary: "#0f1728",
-  inkSecondary: "#4a5565",
-  inkMuted: "#6b7280",
-  grid: "#e6e8ec",
-  axis: "#c9cdd4",
-  border: "rgba(15,23,40,0.10)",
+  surfaceRaised: "#f1f5f9",
+  inkPrimary: "#0f172a",
+  inkSecondary: "#475569",
+  inkMuted: "#64748b",
+  grid: "#e2e8f0",
+  axis: "#cbd5e1",
+  border: "rgba(15, 23, 42, 0.08)",
   series: [
-    "#2a78d6",
-    "#eb6834",
-    "#1baf7a",
-    "#eda100",
-    "#e87ba4",
-    "#008300",
-    "#4a3aa7",
-    "#e34948",
+    "#2563eb",
+    "#f97316",
+    "#10b981",
+    "#eab308",
+    "#ec4899",
+    "#059669",
+    "#8b5cf6",
+    "#ef4444",
   ],
-  sequential: ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"],
-  divergingNeg: ["#0d366b", "#1c5cab", "#3987e5", "#9ec5f4"],
-  divergingMid: "#f0efec",
-  divergingPos: ["#f2b8b8", "#e66767", "#d03b3b", "#8f1d1d"],
-  status: STATUS,
-  accent: "#2a78d6",
+  sequential: ["#dbeafe", "#bfdbfe", "#93c5fd", "#60a5fa", "#3b82f6", "#2563eb", "#1d4ed8"],
+  divergingNeg: ["#1e3a8a", "#1d4ed8", "#3b82f6", "#93c5fd"],
+  divergingMid: "#f1f5f9",
+  divergingPos: ["#fca5a5", "#f87171", "#ef4444", "#991b1b"],
+  status: STATUS_LIGHT,
+  accent: "#2563eb",
   fontFamily: FONT,
   fontFamilyMono: FONT_MONO,
   fontSize: SIZES,
 };
 
-// The terminal palette: a near-black navy ground (not pure black — a trading-desk
-// monitor at night is still blue-black, never neutral grey), a mint/teal brand accent
-// or the amber-on-charcoal cousin of it, and the same fixed STATUS pair every mode
-// uses for up/down semantics. Categorical `series` keeps the validated CVD-safe order
-// from LIGHT's hues, just re-lit for a dark ground — do not reorder or insert hues
-// without re-running the dataviz palette validator.
 export const DARK: ThemeTokens = {
   mode: "dark",
-  page: "#080b12",
-  surface: "#0d121c",
-  surfaceRaised: "#111827",
-  inkPrimary: "#e7ecf5",
-  inkSecondary: "#8a94a6",
-  inkMuted: "#5b6472",
-  grid: "#1b2331",
-  axis: "#263041",
-  border: "rgba(148,163,184,0.14)",
+  page: "#070a12",
+  surface: "#0f172a",
+  surfaceRaised: "#1e293b",
+  inkPrimary: "#f8fafc",
+  inkSecondary: "#94a3b8",
+  inkMuted: "#64748b",
+  grid: "#1e293b",
+  axis: "#334155",
+  border: "rgba(255, 255, 255, 0.1)",
   series: [
-    "#3ee6b4",
-    "#eb6834",
-    "#5b9cf6",
-    "#eda100",
-    "#e87ba4",
-    "#4fd67a",
-    "#9085e9",
-    "#e66767",
+    "#38bdf8",
+    "#fb923c",
+    "#34d399",
+    "#facc15",
+    "#f472b6",
+    "#4ade80",
+    "#a78bfa",
+    "#f87171",
   ],
-  sequential: ["#062e26", "#0a4a3c", "#106b57", "#189173", "#3ee6b4", "#8ff3d3", "#d4faec"],
-  divergingNeg: ["#d4faec", "#8ff3d3", "#3ee6b4", "#106b57"],
-  divergingMid: "#263041",
-  divergingPos: ["#7a2f2f", "#d03b3b", "#e66767", "#f2b8b8"],
-  status: { good: "#3ee6b4", warning: "#eda100", serious: "#eb6834", critical: "#ff5c72" },
-  accent: "#3ee6b4",
+  sequential: ["#0c4a6e", "#075985", "#0369a1", "#0284c7", "#38bdf8", "#7dd3fc", "#bae6fd"],
+  divergingNeg: ["#bae6fd", "#7dd3fc", "#38bdf8", "#0284c7"],
+  divergingMid: "#1e293b",
+  divergingPos: ["#7f1d1d", "#ef4444", "#f87171", "#fca5a5"],
+  status: STATUS_DARK,
+  accent: "#38bdf8",
   fontFamily: FONT,
   fontFamilyMono: FONT_MONO,
   fontSize: SIZES,
 };
 
 export const tokensFor = (mode: ThemeMode): ThemeTokens => (mode === "dark" ? DARK : LIGHT);
+

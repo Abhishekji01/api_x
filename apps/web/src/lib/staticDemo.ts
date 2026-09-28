@@ -6,7 +6,7 @@
  * RFC 9457 problem, never an invented value.
  */
 
-export const STATIC_DEMO: boolean = import.meta.env.VITE_APIX_STATIC === "1";
+export const STATIC_DEMO: boolean = import.meta.env.VITE_APIX_STATIC !== "0";
 
 /** Snapshot key for one GET request: API path + sorted query, made filesystem-safe.
  * scripts/harvest-snapshot.mjs mirrors this exactly — change both together. */

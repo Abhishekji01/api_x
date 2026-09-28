@@ -116,26 +116,26 @@ export function ChartPanel({
   return (
     <section
       aria-labelledby={headingId}
-      className="rounded-xl border border-edge bg-surface p-5 shadow-card"
+      className="rounded-2xl border border-edge/80 bg-surface p-6 shadow-sm card-hover"
     >
-      <header className="mb-4 flex flex-wrap items-start justify-between gap-2">
+      <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id={headingId} className="text-base font-semibold text-ink">
+          <h2 id={headingId} className="text-base font-bold tracking-tight text-ink">
             {title}
           </h2>
-          {subtitle !== undefined && <p className="mt-0.5 text-sm text-ink-2">{subtitle}</p>}
+          {subtitle !== undefined && <p className="mt-0.5 text-xs text-ink-2 leading-relaxed">{subtitle}</p>}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {dataStatus !== undefined && <DataStatusBadge status={dataStatus} />}
           {toolbar}
           {showToggle && table !== undefined && (
             <button
               type="button"
-              className="rounded-full border border-edge px-3 py-1 text-xs font-medium text-ink-2 transition-colors hover:border-accent hover:text-accent-ink"
+              className="rounded-lg border border-edge/80 bg-surface-raised px-3 py-1 text-xs font-semibold text-ink-2 transition-all hover:border-accent hover:text-accent-ink"
               aria-pressed={view === "table"}
               onClick={() => setView(view === "chart" ? "table" : "chart")}
             >
-              {view === "chart" ? "View as table" : "View as chart"}
+              {view === "chart" ? "View table" : "View chart"}
             </button>
           )}
         </div>

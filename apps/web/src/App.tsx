@@ -1,20 +1,12 @@
-/**
- * Dashboard shell — an official-statistics data portal: a slim context strip, a white
- * masthead with the index's name and the honest state of the data behind it, a single
- * row of section tabs (keyboard shortcuts 1-9), and a footer.
- *
- * The data-origin badge and banner come from `/v1/pipeline` — when every quote in the
- * database is from the labelled synthetic generator, every page says so. Nothing in the
- * chrome is decorative "live" theatre: no invented latency, no pulsing LIVE badge.
- */
-
 import { useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { BASE_URL } from "./api/client";
 import { usePipeline } from "./api/hooks";
 import { DataOriginBadge } from "./components/badges";
+import { IconMoon, IconSun } from "./components/icons";
 import { ApixMark } from "./components/illustrations";
 import { STATIC_DEMO } from "./lib/staticDemo";
+import { useTheme } from "./theme/ThemeContext";
 
 const SCREENS = [
   { to: "/", label: "Overview", key: "1" },
@@ -34,6 +26,7 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const pipeline = usePipeline();
+  const { mode, toggleMode } = useTheme();
   const origin = pipeline.data?.data_origin;
 
   useEffect(() => {
@@ -53,45 +46,69 @@ export default function App() {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-page text-ink antialiased">
+    <div className="flex min-h-screen flex-col bg-page text-ink antialiased selection:bg-accent/20 selection:text-accent">
       <a
         href="#main"
-        className="visually-hidden focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2"
+        className="visually-hidden focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:shadow-xl"
       >
         Skip to content
       </a>
 
-      {/* Context strip */}
-      <div className="bg-navy text-on-navy-muted">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-1.5 text-[11px] sm:px-6">
-          <span>
-            Prototype for the Ministry of Statistics &amp; Programme Implementation (MoSPI) ·
-            Smart India Hackathon 2026 · Problem statement 26056
-          </span>
-          <span className="hidden sm:inline">Team Vyom</span>
+      {/* Top Govt Context Strip */}
+      <div className="bg-navy text-on-navy-muted border-b border-navy-2/60">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2 text-xs sm:px-6">
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 live-dot" />
+            <span className="font-medium text-on-navy">
+              Ministry of Statistics &amp; Programme Implementation (MoSPI)
+            </span>
+            <span className="opacity-40">·</span>
+            <span>Smart India Hackathon 2026 (PS 26056)</span>
+          </div>
+          <div className="flex items-center gap-4 text-xs font-semibold text-on-navy">
+            <span>Team Vyomastra</span>
+          </div>
         </div>
       </div>
 
-      {/* Masthead */}
-      <header className="border-b border-edge bg-surface">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <NavLink to="/" className="flex min-w-0 items-center gap-3">
-            <ApixMark className="h-10 w-10 shrink-0" />
+      {/* Sticky Blurred Header */}
+      <header className="sticky top-0 z-40 border-b border-edge/80 bg-surface/90 backdrop-blur-md transition-colors">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
+          <NavLink to="/" className="flex min-w-0 items-center gap-3.5 group">
+            <ApixMark className="h-10 w-10 shrink-0 transition-transform group-hover:scale-105" />
             <div className="min-w-0 leading-tight">
-              <p className="text-lg font-bold tracking-tight text-ink">
-                APIx <span className="font-medium text-ink-2">· Airfare Price Index for India</span>
-              </p>
-              <p className="text-xs text-ink-2">
-                A daily, route-level index of domestic airfares, built to augment the CPI
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-extrabold tracking-tight text-ink font-sans">
+                  APIx
+                </h1>
+                <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-[11px] font-bold text-accent-ink tracking-wide uppercase">
+                  Airfare Price Index
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs font-medium text-ink-2">
+                Real-time route-level airfare index for India (augmenting CPI)
               </p>
             </div>
           </NavLink>
-          <div className="flex flex-wrap items-center gap-2">
+
+          <div className="flex flex-wrap items-center gap-3">
             {origin !== undefined && <DataOriginBadge origin={origin} />}
+
+            {/* Theme Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleMode}
+              aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-edge/80 bg-surface-raised text-ink-2 transition-colors hover:border-accent hover:text-accent-ink"
+            >
+              {mode === "dark" ? <IconSun className="h-4 w-4" /> : <IconMoon className="h-4 w-4" />}
+            </button>
+
             {!STATIC_DEMO && (
               <a
                 href={`${BASE_URL}/docs`}
-                className="rounded-md border border-edge px-3 py-1.5 text-xs font-semibold text-ink-2 transition-colors hover:border-accent hover:text-accent-ink"
+                className="flex items-center gap-1.5 rounded-xl border border-edge/80 bg-surface-raised px-3.5 py-1.5 text-xs font-semibold text-ink-2 transition-all hover:border-accent hover:text-accent-ink hover:shadow-sm"
               >
                 API docs
               </a>
@@ -99,77 +116,82 @@ export default function App() {
           </div>
         </div>
 
-        {/* Section tabs */}
-        <nav
-          aria-label="Sections"
-          className="mx-auto flex max-w-[1400px] items-center gap-1 overflow-x-auto px-2 sm:px-4"
-        >
-          {SCREENS.map((item) => {
-            const isActive =
-              item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to);
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                aria-current={isActive ? "page" : undefined}
-                title={item.key !== "" ? `Shortcut: ${item.key}` : undefined}
-                className={`shrink-0 border-b-2 px-3 py-2.5 text-[13px] font-semibold transition-colors ${
-                  isActive
-                    ? "border-accent text-accent-ink"
-                    : "border-transparent text-ink-2 hover:border-edge hover:text-ink"
-                }`}
-              >
-                {item.label}
-              </NavLink>
-            );
-          })}
-        </nav>
+        {/* Section Tabs */}
+        <div className="border-t border-edge/40 bg-surface/40">
+          <nav
+            aria-label="Sections"
+            className="mx-auto flex max-w-[1440px] items-center gap-1.5 overflow-x-auto px-3 py-1.5 sm:px-6 no-scrollbar"
+          >
+            {SCREENS.map((item) => {
+              const isActive =
+                item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to);
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  aria-current={isActive ? "page" : undefined}
+                  title={item.key !== "" ? `Keyboard shortcut: ${item.key}` : undefined}
+                  className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                    isActive
+                      ? "bg-accent text-white shadow-sm font-bold"
+                      : "text-ink-2 hover:bg-surface-raised hover:text-ink"
+                  }`}
+                >
+                  {item.label}
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
       </header>
 
       {(origin === "SYNTHETIC" || origin === "MIXED") && (
-        <div className="border-b border-warning-ink/20 bg-warning-soft">
-          <p className="mx-auto max-w-[1400px] px-4 py-2 text-xs text-ink sm:px-6">
-            <strong className="font-semibold text-warning-ink">Demonstration data.</strong>{" "}
+        <div className="border-b border-amber-500/20 bg-amber-500/10 backdrop-blur-sm">
+          <p className="mx-auto max-w-[1440px] px-4 py-2.5 text-xs text-ink sm:px-6">
+            <strong className="font-semibold text-amber-600 dark:text-amber-400">
+              Demonstration data:
+            </strong>{" "}
             {origin === "SYNTHETIC"
-              ? "Every fare on this site comes from APIx's labelled synthetic generator, not from airline or OTA websites."
-              : "Some fares on this site come from APIx's labelled synthetic generator."}{" "}
-            The pipeline, cleaning and index maths are the real production code; live collection
-            starts source by source once each site's terms-of-service review is recorded.{" "}
-            <NavLink to="/pipeline" className="font-semibold text-accent-ink underline underline-offset-2">
-              How collection works
+              ? "Every fare on this site comes from APIx's labelled synthetic generator."
+              : "Some fares come from APIx's synthetic generator."}{" "}
+            The pipeline, cleaning, and index math are real production code.{" "}
+            <NavLink to="/pipeline" className="font-semibold text-accent underline underline-offset-2">
+              Learn how collection works →
             </NavLink>
           </p>
         </div>
       )}
 
-      <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6">
+      <main id="main" className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 sm:px-6">
         <Outlet />
       </main>
 
-      <footer className="border-t border-edge bg-surface">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-4 py-5 text-xs text-ink-2 sm:px-6">
-          <div className="flex items-center gap-2">
-            <ApixMark className="h-5 w-5" />
-            <span className="font-semibold text-ink">APIx</span>
-            <span>Real-time Airfare Price Index for India · Team Vyom</span>
+      <footer className="mt-auto border-t border-edge/80 bg-surface py-8">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-4 text-xs text-ink-2 sm:px-6">
+          <div className="flex items-center gap-3">
+            <ApixMark className="h-6 w-6" />
+            <span className="font-bold text-ink text-sm">APIx</span>
+            <span className="text-ink-muted">·</span>
+            <span>Real-time Airfare Price Index for India · Team Vyomastra</span>
           </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <NavLink to="/reports" className="hover:text-accent-ink">
+          <div className="flex flex-wrap items-center gap-5 font-medium">
+            <NavLink to="/reports" className="transition-colors hover:text-accent">
               Methodology
             </NavLink>
-            <NavLink to="/validation" className="hover:text-accent-ink">
+            <NavLink to="/validation" className="transition-colors hover:text-accent">
               Validation
             </NavLink>
-            <NavLink to="/pipeline" className="hover:text-accent-ink">
+            <NavLink to="/pipeline" className="transition-colors hover:text-accent">
               Compliance
             </NavLink>
-            <NavLink to="/api-access" className="hover:text-accent-ink">
+            <NavLink to="/api-access" className="transition-colors hover:text-accent">
               API for NSO &amp; RBI
             </NavLink>
           </div>
-          <p className="text-ink-muted">Not an official statistical release.</p>
+          <p className="text-ink-muted text-[11px]">Not an official statistical release.</p>
         </div>
       </footer>
     </div>
   );
 }
+
